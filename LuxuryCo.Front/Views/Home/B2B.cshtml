@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Acceso B2B / Mayoristas";
+}
+
+<div class="container py-5" style="max-width: 800px;">
+    <h1 class="mb-4" style="font-family: 'Playfair Display', serif; font-size: 2.5rem; text-transform: uppercase;">Acceso B2B (Mayoristas)</h1>
+    
+    <div class="p-5 mb-5" style="background-color: var(--color-black); color: white;">
+        <h3 class="mb-3" style="color: var(--color-gold);">Forma parte de la familia LuxuryCo</h3>
+        <p>Nuestro programa B2B (Business to Business) está diseñado para boutiques, concept stores y mayoristas que desean llevar la exclusividad de nuestras prendas a sus clientes.</p>
+        
+        <h5 class="mt-4 mb-3">Beneficios del Programa:</h5>
+        <ul>
+            <li class="mb-2">Márgenes de ganancia altamente competitivos.</li>
+            <li class="mb-2">Acceso anticipado a colecciones nuevas.</li>
+            <li class="mb-2">Soporte y material gráfico de marketing proporcionado.</li>
+            <li class="mb-2">Atención personalizada y asesoramiento de inventario.</li>
+        </ul>
+    </div>
+    
+    <h3 class="mb-4">Solicitud de Acceso B2B</h3>
+    <form>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre de la Empresa / Tienda</label>
+                <input type="text" class="form-control rounded-0" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">NIT o RUT</label>
+                <input type="text" class="form-control rounded-0" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre del Contacto</label>
+                <input type="text" class="form-control rounded-0" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email Corporativo</label>
+                <input type="email" class="form-control rounded-0" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Teléfono / Celular</label>
+                <input type="text" class="form-control rounded-0" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Sitio Web / Instagram</label>
+                <input type="text" class="form-control rounded-0" />
+            </div>
+            <div class="col-12 mb-3">
+                <label class="form-label">¿Por qué deseas vender LuxuryCo en tu tienda?</label>
+                <textarea class="form-control rounded-0" rows="4" required></textarea>
+            </div>
+            <div class="col-12 mt-3">
+                <button type="button" class="btn btn-dark w-100 py-3 rounded-0 fw-bold" style="letter-spacing: 2px;" onclick="alert('Gracias por su solicitud. Nuestro equipo B2B se contactará pronto.');">ENVIAR SOLICITUD</button>
+            </div>
+        </div>
+    </form>
+</div>

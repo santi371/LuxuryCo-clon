@@ -22,6 +22,7 @@ builder.Services.AddScoped<LuxuryCo.Back.Services.IProveedorService, LuxuryCo.Ba
 builder.Services.AddScoped<LuxuryCo.Back.Services.IInventarioService, LuxuryCo.Back.Services.InventarioService>();
 builder.Services.AddScoped<LuxuryCo.Back.Services.IPaymentGatewayService, LuxuryCo.Back.Services.PaymentGatewayService>();
 builder.Services.AddScoped<LuxuryCo.Back.Services.ICheckoutService, LuxuryCo.Back.Services.CheckoutService>();
+builder.Services.AddHttpClient<LuxuryCo.Back.Services.IAiService, LuxuryCo.Back.Services.GroqAiService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -97,69 +98,74 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Seed Data para Administrador y Patches de DB
-using (var scope = app.Services.CreateScope())
+// Seed Data para Administrador y Patches de DB procesado en Background para evitar bloquear Kestrel y el Puerto 7066
+_ = Task.Run(async () =>
 {
-    var context = scope.ServiceProvider.GetRequiredService<LuxuryCo.Database.Data.LuxuryCoDbContext>();
-    var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
-    
-    try 
+    // Esperamos 5 segundos para que la App inicie en paz antes de sembrar.
+    await Task.Delay(5000);
+    using (var scope = app.Services.CreateScope())
     {
-        // 0. Auto-patch robusto para añadir columna logo_url si no existe en Supabase
-        await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(context.Database, "ALTER TABLE marca ADD COLUMN IF NOT EXISTS logo_url character varying(500) NULL;");
-
-        // Asegurar que existe el rol ADMIN
-        var adminRole = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(context.Roles, r => r.nombre_rol == "ADMIN");
-        if (adminRole == null)
+        var context = scope.ServiceProvider.GetRequiredService<LuxuryCo.Database.Data.LuxuryCoDbContext>();
+        var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
+        
+        try 
         {
-            adminRole = new LuxuryCo.Database.Models.Rol { nombre_rol = "ADMIN", descripcion = "Administrador del sistema" };
-            context.Roles.Add(adminRole);
-            await context.SaveChangesAsync();
-        }
+            // 0. Auto-patch robusto para añadir columna logo_url si no existe en Supabase
+            await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(context.Database, "ALTER TABLE marca ADD COLUMN IF NOT EXISTS logo_url character varying(500) NULL;");
 
-        // Asegurar roles adicionales para el ERP
-        var rolesAdicionales = new[] { "VENDEDOR", "SUPERVISOR", "CLIENTE" };
-        foreach (var rolStr in rolesAdicionales)
-        {
-            var existeRol = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(context.Roles, r => r.nombre_rol == rolStr);
-            if (!existeRol)
+            // Asegurar que existe el rol ADMIN
+            var adminRole = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(context.Roles, r => r.nombre_rol == "ADMIN");
+            if (adminRole == null)
             {
-                context.Roles.Add(new LuxuryCo.Database.Models.Rol { nombre_rol = rolStr, descripcion = $"Permisos de {rolStr}" });
+                adminRole = new LuxuryCo.Database.Models.Rol { nombre_rol = "ADMIN", descripcion = "Administrador del sistema" };
+                context.Roles.Add(adminRole);
+                await context.SaveChangesAsync();
+            }
+
+            // Asegurar roles adicionales para el ERP
+            var rolesAdicionales = new[] { "VENDEDOR", "SUPERVISOR", "CLIENTE" };
+            foreach (var rolStr in rolesAdicionales)
+            {
+                var existeRol = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(context.Roles, r => r.nombre_rol == rolStr);
+                if (!existeRol)
+                {
+                    context.Roles.Add(new LuxuryCo.Database.Models.Rol { nombre_rol = rolStr, descripcion = $"Permisos de {rolStr}" });
+                }
+            }
+            await context.SaveChangesAsync();
+
+            // Asegurar que existe el usuario admin@luxuryco.com
+            var adminEmail = "admin@luxuryco.com";
+            var adminExists = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(context.Usuarios, u => u.email == adminEmail);
+            
+            if (!adminExists)
+            {
+                // 1. Registrar en Supabase
+                var session = await supabase.Auth.SignUp(adminEmail, "Admin123!");
+                
+                // 2. Insertar en nuestra base de datos local
+                var adminUser = new LuxuryCo.Database.Models.Usuario
+                {
+                    nombre = "Super",
+                    apellido = "Admin",
+                    email = adminEmail,
+                    password_hash = "SUPABASE_MANAGED",
+                    telefono = "0000000000",
+                    id_rol = adminRole.id_rol,
+                    activo = true,
+                    fecha_registro = DateTime.UtcNow,
+                    two_factor_enabled = false
+                };
+                context.Usuarios.Add(adminUser);
+                await context.SaveChangesAsync();
+                Console.WriteLine("Usuario Administrador ('admin@luxuryco.com' / 'Admin123!') creado con éxito.");
             }
         }
-        await context.SaveChangesAsync();
-
-        // Asegurar que existe el usuario admin@luxuryco.com
-        var adminEmail = "admin@luxuryco.com";
-        var adminExists = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(context.Usuarios, u => u.email == adminEmail);
-        
-        if (!adminExists)
+        catch (Exception ex)
         {
-            // 1. Registrar en Supabase
-            var session = await supabase.Auth.SignUp(adminEmail, "Admin123!");
-            
-            // 2. Insertar en nuestra base de datos local
-            var adminUser = new LuxuryCo.Database.Models.Usuario
-            {
-                nombre = "Super",
-                apellido = "Admin",
-                email = adminEmail,
-                password_hash = "SUPABASE_MANAGED",
-                telefono = "0000000000",
-                id_rol = adminRole.id_rol,
-                activo = true,
-                fecha_registro = DateTime.UtcNow,
-                two_factor_enabled = false
-            };
-            context.Usuarios.Add(adminUser);
-            await context.SaveChangesAsync();
-            Console.WriteLine("Usuario Administrador ('admin@luxuryco.com' / 'Admin123!') creado con éxito.");
+            Console.WriteLine("Error al sembrar usuario Admin o aplicar parches: " + ex.Message);
         }
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Error al sembrar usuario Admin o aplicar parches: " + ex.Message);
-    }
-}
+});
 
 app.Run();

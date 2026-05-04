@@ -44,12 +44,12 @@ public class CarritoService : ICarritoService
         return new CarritoDto
         {
             IdCarrito = carrito.id_carrito,
-            IdUsuario = carrito.id_usuario,
+            IdUsuario = carrito.id_usuario ?? 0,
             FechaCreacion = carrito.fecha_creacion,
             Detalles = carrito.Detalles.Select(d => new DetalleCarritoDto
             {
                 IdDetalleCarrito = d.id_detalle_carrito,
-                IdProducto = d.id_producto,
+                IdProducto = d.id_producto ?? 0,
                 NombreProducto = d.Producto?.nombre ?? "Desconocido",
                 MarcaNombre = d.Producto?.Marca?.nombre,
                 ImagenUrl = d.Producto?.Imagenes.FirstOrDefault()?.url_imagen,

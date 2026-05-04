@@ -3,6 +3,7 @@ using System;
 using LuxuryCo.Database.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LuxuryCo.Database.Migrations
 {
     [DbContext(typeof(LuxuryCoDbContext))]
-    partial class LuxuryCoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260501002557_AddHistorialChatAi")]
+    partial class AddHistorialChatAi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

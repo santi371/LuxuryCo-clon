@@ -1,434 +1,734 @@
-@model dynamic
+@using LuxuryCo.Front.ViewModels
+@model ProductoViewModel
 
 @{
-    // Provide a fallback name if model is null (e.g. database still empty)
-    var prodName = Model != null ? Model.Nombre : "CAMISETA OVERSIZE FLAME AZUL";
-    var prodPrice = Model != null ? Model.Precio : 280000.00;
-    var prodBrand = Model != null ? Model.MarcaNombre : "MONEY MAKERS";
-    var imgUrl = Model != null && Model.ImagenPrincipalUrl != null ? Model.ImagenPrincipalUrl : "https://images.unsplash.com/photo-1618517351616-38fb9c5210c6?q=80&w=800&auto=format&fit=crop";
-    
-    ViewData["Title"] = prodName;
+    var prodName = Model?.Nombre ?? "Producto LuxuryCo";
+    var prodPrice = Model?.Precio ?? 0;
+    var prodBrand = Model?.MarcaNombre ?? "LuxuryCo";
+    var prodDesc = Model?.Descripcion ?? "Una pieza única de la colección exclusiva de LuxuryCo.";
+    var prodStock = Model?.Stock ?? 0;
+    var imgUrl = !string.IsNullOrEmpty(Model?.ImagenPrincipalUrl)
+        ? Model.ImagenPrincipalUrl
+        : "https://images.unsplash.com/photo-1618517351616-38fb9c5210c6?q=80&w=800&auto=format&fit=crop";
+    var allImages = Model?.ImagenesUrls != null && Model.ImagenesUrls.Count > 0
+        ? Model.ImagenesUrls
+        : new List<string> { imgUrl };
+
+    ViewData["Title"] = prodName + " | LuxuryCo";
 }
 
-<!-- Swiper CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
 <style>
-    .product-detail-container {
-        display: flex;
-        flex-wrap: wrap;
+    :root {
+        --gold: #c9a84c;
+        --gold-light: #e8c96e;
+        --dark: #0a0a0a;
+        --dark2: #111;
+        --dark3: #1a1a1a;
+        --text-muted: #888;
+    }
+
+    * { box-sizing: border-box; }
+
+    .pd-wrapper {
+        background: var(--dark);
         min-height: calc(100vh - 78px);
-        background-color: #fff;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
     }
-    
-    .product-gallery {
-        flex: 1;
-        min-width: 50%;
-        background-color: #f7f7f7;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 40px;
+
+    /* ── Breadcrumb ── */
+    .pd-breadcrumb {
+        padding: 18px 40px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+        border-bottom: 1px solid #1e1e1e;
     }
-    
-    .product-gallery img {
-        max-width: 100%;
-        max-height: 80vh;
-        object-fit: contain;
+    .pd-breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .pd-breadcrumb a:hover { color: var(--gold); }
+    .pd-breadcrumb span { color: #fff; }
+
+    /* ── Main Layout ── */
+    .pd-main {
+        display: grid;
+        grid-template-columns: 55% 45%;
+        min-height: 85vh;
     }
-    
-    .product-info-panel {
-        flex: 1;
-        min-width: 50%;
-        padding: 50px;
+    @@media (max-width: 992px) {
+        .pd-main { grid-template-columns: 1fr; }
+    }
+
+    /* ── Gallery ── */
+    .pd-gallery {
+        background: #0d0d0d;
+        position: sticky;
+        top: 78px;
+        height: calc(100vh - 78px);
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
+        padding: 20px;
+        gap: 12px;
+        z-index: 1;
     }
-    
-    .prod-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 2.5rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        margin-bottom: 15px;
-        color: #000;
-        line-height: 1.2;
+    @@media (max-width: 992px) {
+        .pd-gallery {
+            position: relative;
+            top: unset;
+            height: 70vw;
+            max-height: 500px;
+        }
     }
-    
-    .prod-price {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #000;
-        margin-bottom: 30px;
+
+    .swiper-main {
+        flex: 1;
+        border-radius: 2px;
+        overflow: hidden;
     }
-    
-    .prod-meta {
-        font-size: 0.85rem;
-        color: #555;
-        margin-bottom: 5px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
-    .brand-value {
-        color: #000;
-        font-weight: 600;
-    }
-    
-    /* Celeb mentions */
-    .celeb-section {
-        margin: 30px 0;
-        text-align: center;
-    }
-    .celeb-title {
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: lowercase;
-        margin-bottom: 15px;
-    }
-    .celeb-faces {
-        display: flex;
-        justify-content: center;
-        gap: -10px;
-        flex-wrap: wrap;
-    }
-    .celeb-face {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: 2px solid #fff;
-        object-fit: cover;
-        margin-left: -15px;
-        position: relative;
-    }
-    .celeb-face:first-child {
-        margin-left: 0;
-    }
-    
-    /* Size Selector */
-    .size-selector {
-        margin: 30px 0;
-    }
-    .size-label {
-        font-size: 0.9rem;
-        margin-bottom: 10px;
-        display: block;
-    }
-    .size-options {
-        display: flex;
-        gap: 10px;
-    }
-    .size-box {
-        width: 50px;
-        height: 50px;
-        border: 1px solid #ddd;
+    .swiper-main .swiper-slide {
         display: flex;
         justify-content: center;
         align-items: center;
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: all 0.2s;
+        background: #0d0d0d;
     }
-    .size-box:hover, .size-box.active {
-        border-color: #000;
-        background-color: #fafafa;
-    }
-    .size-box.disabled {
-        color: #ccc;
-        cursor: not-allowed;
-        position: relative;
-    }
-    .size-box.disabled::after {
-        content: '';
-        position: absolute;
+    .swiper-main img {
         width: 100%;
-        height: 1px;
-        background: #ccc;
-        transform: rotate(-45deg);
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        transition: transform 0.6s ease;
     }
-    
-    /* Quantity */
-    .quantity-selector {
-        margin-bottom: 30px;
-    }
-    .qty-controls {
-        display: inline-flex;
-        border: 1px solid #ddd;
-        height: 40px;
-    }
-    .qty-btn {
-        background: transparent;
-        border: none;
-        width: 40px;
-        font-size: 1.2rem;
+    .swiper-main .swiper-slide:hover img { transform: scale(1.04); }
+
+    .swiper-thumbs .swiper-slide {
+        width: 70px !important;
+        height: 70px !important;
+        border: 2px solid transparent;
         cursor: pointer;
-    }
-    .qty-input {
-        width: 50px;
-        text-align: center;
-        border: none;
-        border-left: 1px solid #ddd;
-        border-right: 1px solid #ddd;
-        font-weight: 600;
-    }
-    
-    .total-price {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-top: 15px;
-    }
-    
-    /* Actions */
-    .btn-add-cart {
-        background-color: #000;
-        color: #fff;
-        border: 1px solid #000;
-        padding: 15px 30px;
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 2px;
-        width: 100%;
-        margin-top: 20px;
+        border-radius: 2px;
+        overflow: hidden;
+        opacity: 0.55;
         transition: all 0.3s;
     }
-    .btn-add-cart:hover {
-        background-color: transparent;
+    .swiper-thumbs .swiper-slide img {
+        width: 100%; height: 100%; object-fit: cover;
+    }
+    .swiper-thumbs .swiper-slide-thumb-active {
+        border-color: var(--gold);
+        opacity: 1;
+    }
+
+    /* Badge NEW */
+    .badge-new {
+        position: absolute;
+        top: 20px; left: 20px;
+        background: var(--gold);
         color: #000;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        padding: 5px 12px;
+        z-index: 5;
     }
-    
-    /* Whatsapp Floater */
-    .whatsapp-floater {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
+
+    /* ── Info Panel ── */
+    .pd-info {
+        padding: 50px 45px;
+        overflow-y: auto;
         display: flex;
-        align-items: center;
-        gap: 15px;
-        z-index: 100;
+        flex-direction: column;
+        gap: 0;
+        position: relative;
+        z-index: 2;
     }
-    .whatsapp-tooltip {
-        background: #fff;
-        padding: 10px 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        font-size: 0.85rem;
-        border-radius: 4px;
+    @@media (max-width: 768px) {
+        .pd-info { padding: 30px 20px; }
     }
-    .whatsapp-btn {
-        background-color: #25D366;
+
+    .pd-brand {
+        font-size: 0.72rem;
+        letter-spacing: 3px;
+        color: var(--gold);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .pd-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 600;
+        line-height: 1.2;
         color: #fff;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
+        margin-bottom: 18px;
+        text-transform: uppercase;
+    }
+
+    /* ── Stars ── */
+    .stars-row {
         display: flex;
-        justify-content: center;
         align-items: center;
-        font-size: 30px;
-        box-shadow: 0 4px 10px rgba(37, 211, 102, 0.4);
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+    .stars { color: var(--gold); font-size: 0.9rem; letter-spacing: 2px; }
+    .stars-count { font-size: 0.78rem; color: var(--text-muted); }
+    .stars-link { font-size: 0.78rem; color: var(--gold); text-decoration: underline; cursor: pointer; }
+
+    .pd-divider { border: none; border-top: 1px solid #222; margin: 20px 0; }
+
+    .pd-price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+    .pd-price-subtag {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+    }
+
+    /* ── Stock Badge ── */
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 5px 12px;
+        border-radius: 2px;
+        margin-bottom: 24px;
+        font-weight: 600;
+    }
+    .stock-badge.ok { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .stock-badge.low { background: rgba(234,179,8,0.1); color: #eab308; border: 1px solid rgba(234,179,8,0.3); }
+    .stock-badge.out { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+
+    /* ── Description ── */
+    .pd-desc {
+        font-size: 0.9rem;
+        color: #aaa;
+        line-height: 1.8;
+        margin-bottom: 28px;
+    }
+
+    /* ── Trust Badges ── */
+    .trust-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 28px;
+    }
+    .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        background: var(--dark2);
+        border: 1px solid #222;
+        font-size: 0.78rem;
+        color: #bbb;
+        border-radius: 2px;
+    }
+    .trust-item i { color: var(--gold); }
+
+    /* ── Size selector ── */
+    .size-label {
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+    .size-options { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; position: relative; z-index: 10; }
+    .size-box {
+        width: 46px; height: 46px;
+        border: 1px solid #333;
+        display: flex; justify-content: center; align-items: center;
+        cursor: pointer;
+        font-size: 0.8rem; letter-spacing: 1px;
+        color: #888;
+        transition: all 0.2s;
+        border-radius: 2px;
+    }
+    .size-box:hover { border-color: var(--gold); color: var(--gold); }
+    .size-box.active { border-color: var(--gold); background: var(--gold); color: #000; font-weight: 700; }
+    .size-box.disabled { border-color: #1e1e1e; color: #2a2a2a; cursor: not-allowed; position: relative; }
+    .size-box.disabled::after {
+        content: ''; position: absolute;
+        width: 60%; height: 1px;
+        background: #2a2a2a; transform: rotate(-45deg);
+    }
+
+    /* ── Quantity ── */
+    .qty-row { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+    .qty-controls {
+        display: inline-flex;
+        border: 1px solid #333;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    .qty-btn {
+        background: transparent; border: none;
+        width: 42px; height: 42px;
+        color: #fff; font-size: 1.2rem;
+        cursor: pointer; transition: background 0.2s;
+    }
+    .qty-btn:hover { background: #1e1e1e; }
+    .qty-input {
+        width: 52px; text-align: center;
+        background: #111; border: none;
+        color: #fff; font-weight: 700; font-size: 0.95rem;
+        border-left: 1px solid #333; border-right: 1px solid #333;
+    }
+    .qty-total {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    .qty-total strong { color: var(--gold); }
+
+    /* ── CTA Buttons ── */
+    .btn-cta-main {
+        width: 100%;
+        padding: 16px;
+        background: var(--gold);
+        color: #000;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+        margin-bottom: 12px;
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-cta-main:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-cta-main:active { transform: translateY(0); }
+    .btn-cta-main:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-cta-sub {
+        width: 100%;
+        padding: 14px;
+        background: transparent;
+        color: #fff;
+        border: 1px solid #333;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
         text-decoration: none;
+        display: block;
+        text-align: center;
+    }
+    .btn-cta-sub:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── Recommendations ── */
+    .rec-section { margin-top: 40px; }
+    .rec-title {
+        font-size: 0.7rem;
+        letter-spacing: 3px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 18px;
+    }
+    .rec-list { display: flex; flex-direction: column; gap: 14px; }
+    .rec-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 16px;
+        background: var(--dark2);
+        border: 1px solid #1e1e1e;
+        border-radius: 4px;
+        transition: border-color 0.3s;
+    }
+    .rec-item:hover { border-color: #333; }
+    .rec-avatar {
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--gold);
+        flex-shrink: 0;
+    }
+    .rec-content { flex: 1; }
+    .rec-handle { font-size: 0.8rem; color: var(--gold); font-weight: 600; margin-bottom: 3px; }
+    .rec-text { font-size: 0.78rem; color: #aaa; line-height: 1.5; }
+    .rec-stars { color: var(--gold); font-size: 0.65rem; margin-bottom: 4px; }
+
+    /* ── Toast Notification ── */
+    .toast-cart {
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        z-index: 9999;
+        background: var(--dark2);
+        border: 1px solid var(--gold);
+        color: #fff;
+        padding: 16px 22px;
+        border-radius: 4px;
+        min-width: 280px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transform: translateX(120%);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .toast-cart.show { transform: translateX(0); }
+    .toast-icon { color: var(--gold); font-size: 1.2rem; }
+    .toast-msg { font-size: 0.82rem; line-height: 1.4; }
+    .toast-msg strong { display: block; font-size: 0.88rem; margin-bottom: 2px; }
+
+    /* ── WhatsApp ── */
+    .whatsapp-btn {
+        position: fixed; bottom: 30px; right: 30px;
+        background: #25D366;
+        color: #fff; width: 56px; height: 56px;
+        border-radius: 50%;
+        display: flex; justify-content: center; align-items: center;
+        font-size: 1.6rem;
+        box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+        text-decoration: none; z-index: 100;
         transition: transform 0.2s;
     }
-    .whatsapp-btn:hover {
-        transform: scale(1.1);
-        color: #fff;
-    }
-    
-    @@media (max-width: 992px) {
-        .product-gallery, .product-info-panel {
-            min-width: 100%;
-        }
-        .product-gallery {
-            padding: 20px;
-            height: 50vh;
-        }
-        .product-info-panel {
-            padding: 30px 20px;
-        }
-    }
+    .whatsapp-btn:hover { transform: scale(1.1); color: #fff; }
 </style>
 
-<div class="product-detail-container">
-    <div class="product-gallery" style="position:relative;">
-        <div style="z-index:10; position: absolute; top: 100px; left: 40px; background: #fff; padding: 10px 20px; font-weight: bold; transform: rotate(-90deg); transform-origin: left top; letter-spacing: 2px;">
-            10% off
-        </div>
-        
-        <!-- Swiper -->
-        <div class="swiper mySwiper" style="width: 100%; height: 100%;">
-            <div class="swiper-wrapper">
-                @if (Model != null && Model.ImagenesUrls != null && Model.ImagenesUrls.Count > 0)
-                {
-                    foreach (var url in Model.ImagenesUrls)
+<div class="pd-wrapper">
+    <!-- Breadcrumb -->
+    <nav class="pd-breadcrumb">
+        <a href="/">INICIO</a> &nbsp;/&nbsp;
+        <a href="/Shop/Category/@(Model?.Seccion ?? "Hombre")">@(Model?.Seccion?.ToUpper() ?? "COLECCIÓN")</a> &nbsp;/&nbsp;
+        <span>@prodName.ToUpper()</span>
+    </nav>
+
+    <!-- Main Grid -->
+    <div class="pd-main">
+
+        <!-- LEFT: Gallery -->
+        <div class="pd-gallery">
+            <span class="badge-new">NUEVO</span>
+
+            <!-- Swiper principal -->
+            <div class="swiper swiper-main mySwiper2">
+                <div class="swiper-wrapper">
+                    @foreach (var url in allImages)
                     {
-                        <div class="swiper-slide" style="display:flex; justify-content:center; align-items:center;">
-                            <img src="@url" alt="@prodName" />
+                        <div class="swiper-slide">
+                            <img src="@url" alt="@prodName" loading="lazy" />
                         </div>
                     }
+                </div>
+                <div class="swiper-button-next" style="color: var(--gold);"></div>
+                <div class="swiper-button-prev" style="color: var(--gold);"></div>
+            </div>
+
+            <!-- Thumbail swiper -->
+            @if (allImages.Count > 1)
+            {
+                <div class="swiper swiper-thumbs mySwiper" style="height: 76px;">
+                    <div class="swiper-wrapper">
+                        @foreach (var url in allImages)
+                        {
+                            <div class="swiper-slide">
+                                <img src="@url" alt="thumb" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- RIGHT: Info Panel -->
+        <div class="pd-info">
+            <div class="pd-brand">@prodBrand</div>
+            <h1 class="pd-title">@prodName</h1>
+
+            <!-- Stars (carga real via API) -->
+            <div class="stars-row">
+                <div class="stars" id="pdStars">★★★★★</div>
+                <span class="stars-count" id="pdAvg">-- / 5</span>
+                <a class="stars-link" href="#reviewsSection" id="pdCount">(cargando...)</a>
+            </div>
+
+            <hr class="pd-divider" />
+
+            <!-- Price -->
+            <div class="pd-price">$@(string.Format("{0:N0}", prodPrice))</div>
+            <div class="pd-price-subtag">IVA incluido · Envío gratis a todo el país</div>
+
+            <!-- Stock -->
+            @if (prodStock > 10)
+            {
+                <span class="stock-badge ok"><i class="fas fa-circle" style="font-size:7px;"></i> EN STOCK</span>
+            }
+            else if (prodStock > 0)
+            {
+                <span class="stock-badge low"><i class="fas fa-exclamation-triangle" style="font-size:9px;"></i> ÚLTIMAS @prodStock UNIDADES</span>
+            }
+            else
+            {
+                <span class="stock-badge out"><i class="fas fa-times-circle" style="font-size:9px;"></i> AGOTADO</span>
+            }
+
+            <!-- Description -->
+            <hr class="pd-divider" />
+            <p class="pd-desc">@prodDesc</p>
+
+            <!-- Trust Badges -->
+            <div class="trust-grid">
+                <div class="trust-item"><i class="fas fa-shipping-fast"></i> Envío en 24-48h</div>
+                <div class="trust-item"><i class="fas fa-lock"></i> Pago 100% Seguro</div>
+                <div class="trust-item"><i class="fas fa-undo-alt"></i> Devolución 30 Días</div>
+                <div class="trust-item"><i class="fas fa-gem"></i> Garantía Luxury</div>
+            </div>
+
+            <hr class="pd-divider" />
+
+            <!-- Size Selector -->
+            <div class="size-label">TALLA: <strong id="selectedSizeText" style="color:#fff;">S</strong></div>
+            <div class="size-options">
+                <div class="size-box disabled">XS</div>
+                <div class="size-box active" onclick="selectSize(this,'S')">S</div>
+                <div class="size-box" onclick="selectSize(this,'M')">M</div>
+                <div class="size-box" onclick="selectSize(this,'L')">L</div>
+                <div class="size-box" onclick="selectSize(this,'XL')">XL</div>
+                <div class="size-box disabled">XXL</div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="qty-row">
+                <div class="qty-controls">
+                    <button class="qty-btn" onclick="updateQty(-1)">−</button>
+                    <input type="text" id="qtyInput" class="qty-input" value="1" readonly />
+                    <button class="qty-btn" onclick="updateQty(1)">+</button>
+                </div>
+                <div class="qty-total">
+                    Total: <strong id="totalPriceDisplay">$@(string.Format("{0:N0}", prodPrice))</strong>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <form asp-controller="Cart" asp-action="Add" method="post" id="addToCartForm">
+                <input type="hidden" name="productId" value="@Model?.IdProducto" />
+                <input type="hidden" name="quantity" id="hiddenQty" value="1" />
+                @if (prodStock == 0)
+                {
+                    <button type="button" class="btn-cta-main" disabled>PRODUCTO AGOTADO</button>
                 }
                 else
                 {
-                    <div class="swiper-slide" style="display:flex; justify-content:center; align-items:center;">
-                        <img src="@imgUrl" id="mainImage" alt="@prodName" />
-                    </div>
+                    <button type="submit" class="btn-cta-main" id="addCartBtn">
+                        <i class="fas fa-shopping-bag me-2"></i> AGREGAR AL CARRITO
+                    </button>
                 }
-            </div>
-            <!-- Componentes Swiper UI -->
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-next" style="color: #000;"></div>
-            <div class="swiper-button-prev" style="color: #000;"></div>
-        </div>
-    </div>
-    
-    <div class="product-info-panel">
-        <h1 class="prod-title">@prodName</h1>
-        <div class="prod-price" id="basePrice" data-price="@prodPrice">$@(String.Format("{0:N2}", prodPrice))</div>
-        
-        <!-- Trust Badges -->
-        <div class="d-flex flex-column gap-2 mb-4">
-            <div class="p-2 bg-light border" style="font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
-                <span>🚚</span> Envío Gratis en Todas las Compras
-            </div>
-            <div class="p-2 bg-light border" style="font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
-                <span>🔒</span> Pago 100% Seguro y Protegido
-            </div>
-        </div>
+            </form>
+            <a href="/Checkout" class="btn-cta-sub mt-2">
+                <i class="fas fa-bolt me-1"></i> COMPRAR AHORA
+            </a>
 
-        <p style="font-size: 0.95rem; color: #444; line-height: 1.6; margin-bottom: 25px;">
-            La @prodName captura la esencia del streetwear con una estética imponente y llena de carácter. Su diseño exclusivo de @prodBrand en la parte trasera, enmarca el logo con un estilo audaz y enérgico que rinde homenaje a la cultura urbana.
-        </p>
+            <!-- RESEÑAS REALES -->
+            <div class="rec-section" id="reviewsSection">
+                <div class="rec-title">✦ &nbsp;OPINIONES DE CLIENTES</div>
 
-        <div class="prod-meta">
-            Proveedor: <span class="brand-value">@prodBrand</span>
-        </div>
-        <div class="prod-meta">
-            Referencia: <span class="brand-value">LXC-OVERSIZE-8001</span>
-        </div>
-        
-        <div class="celeb-section">
-            <div class="celeb-title">Nuestras marcas han vestido artistas y celebridades como:</div>
-            <div class="celeb-faces">
-                <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 1"/>
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 2"/>
-                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 3"/>
-                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 4"/>
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 5"/>
+                <!-- Formulario nueva reseña -->
+                <div style="background:var(--dark2);border:1px solid #222;border-radius:4px;padding:20px;margin-bottom:18px;">
+                    <div style="font-size:0.75rem;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;">DEJA TU RESEÑA</div>
+                    <div id="starPicker" style="display:flex;gap:6px;margin-bottom:12px;cursor:pointer;font-size:1.4rem;">
+                        <span class="sp" data-v="1" style="color:#333;">★</span>
+                        <span class="sp" data-v="2" style="color:#333;">★</span>
+                        <span class="sp" data-v="3" style="color:#333;">★</span>
+                        <span class="sp" data-v="4" style="color:#333;">★</span>
+                        <span class="sp" data-v="5" style="color:#333;">★</span>
+                    </div>
+                    <input type="text" id="reviewName" placeholder="Tu nombre (opcional)" style="width:100%;padding:10px 12px;background:#0a0a0a;border:1px solid #222;color:#fff;font-size:0.82rem;margin-bottom:8px;border-radius:2px;outline:none;" />
+                    <textarea id="reviewText" rows="3" placeholder="Escribe tu opinión sobre este producto..." style="width:100%;padding:10px 12px;background:#0a0a0a;border:1px solid #222;color:#fff;font-size:0.82rem;resize:vertical;border-radius:2px;outline:none;"></textarea>
+                    <button onclick="submitReview()" style="margin-top:10px;width:100%;padding:12px;background:var(--gold);color:#000;border:none;font-size:0.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:2px;">PUBLICAR RESEÑA</button>
+                    <div id="reviewMsg" style="margin-top:8px;font-size:0.78rem;color:var(--gold);display:none;"></div>
+                </div>
+
+                <!-- Lista de reseñas (carga AJAX) -->
+                <div class="rec-list" id="reviewsList">
+                    <div style="text-align:center;padding:30px;color:var(--text-muted);font-size:0.82rem;">Cargando reseñas...</div>
+                </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <div class="size-selector">
-            <span class="size-label">Size: <strong id="selectedSizeText">S</strong></span>
-            <div class="size-options">
-                <div class="size-box disabled">XS</div>
-                <div class="size-box active" onclick="selectSize(this, 'S')">S</div>
-                <div class="size-box" onclick="selectSize(this, 'M')">M</div>
-                <div class="size-box" onclick="selectSize(this, 'L')">L</div>
-                <div class="size-box" onclick="selectSize(this, 'XL')">XL</div>
-                <div class="size-box disabled">XXL</div>
-            </div>
-        </div>
-        
-        <div class="quantity-selector">
-            <div class="size-label">Cantidad:</div>
-            <div class="qty-controls">
-                <button class="qty-btn" onclick="updateQty(-1)">-</button>
-                <input type="text" id="qtyInput" class="qty-input" value="1" readonly>
-                <button class="qty-btn" onclick="updateQty(1)">+</button>
-            </div>
-        </div>
-        
-        <div class="total-price">
-            Total parcial: <span id="totalPriceDisplay">$@(String.Format("{0:N2}", prodPrice))</span>
-        </div>
-        
-        <form asp-controller="Cart" asp-action="Add" method="post" id="addToCartForm">
-            <input type="hidden" name="productId" value="@Model?.IdProducto" />
-            <input type="hidden" name="quantity" id="hiddenQty" value="1" />
-            <button type="submit" class="btn-add-cart">AGREGAR AL CARRITO</button>
-        </form>
+
+        </div><!-- /pd-info -->
+    </div><!-- /pd-main -->
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-cart" id="cartToast">
+    <div class="toast-icon"><i class="fas fa-check-circle"></i></div>
+    <div class="toast-msg">
+        <strong>¡Añadido al Carrito!</strong>
+        <span id="toastProductName">@prodName</span> fue agregado exitosamente.
     </div>
 </div>
 
-<div class="whatsapp-floater">
-    <div class="whatsapp-tooltip">¿Necesitas asesoría?</div>
-    <a href="https://wa.me/1234567890" target="_blank" class="whatsapp-btn">
-        <i class="bi bi-whatsapp"></i>
-    </a>
-</div>
-
-<script>
-    let basePrice = @prodPrice;
-    
-    function selectSize(element, size) {
-        if (element.classList.contains('disabled')) return;
-        
-        // Remove active from all
-        document.querySelectorAll('.size-box').forEach(el => el.classList.remove('active'));
-        
-        // Add active to clicked
-        element.classList.add('active');
-        document.getElementById('selectedSizeText').innerText = size;
-    }
-    
-    function updateQty(change) {
-        let input = document.getElementById('qtyInput');
-        let current = parseInt(input.value);
-        let newQty = current + change;
-        
-        if (newQty >= 1) {
-            input.value = newQty;
-            document.getElementById('hiddenQty').value = newQty;
-            updateTotal(newQty);
-        }
-    }
-    
-    function updateTotal(qty) {
-        let total = basePrice * qty;
-        // Format to currency
-        document.getElementById('totalPriceDisplay').innerText = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 2});
-    }
-
-    function addToCart(name, price) {
-        let qty = parseInt(document.getElementById('qtyInput').value);
-        let size = document.getElementById('selectedSizeText').innerText;
-        
-        // Here we simulate adding to cart
-        let cartCountBadge = document.getElementById('cart-badge-count');
-        if (cartCountBadge) {
-            let currentCount = parseInt(cartCountBadge.innerText) || 0;
-            currentCount += qty;
-            
-            // Animate badge
-            cartCountBadge.innerText = currentCount;
-            cartCountBadge.style.display = 'flex';
-            cartCountBadge.classList.add('animate__animated', 'animate__bounceIn');
-            setTimeout(() => {
-                cartCountBadge.classList.remove('animate__animated', 'animate__bounceIn');
-            }, 1000);
-            
-            // Flash a quick message or notification
-            alert(`¡Se añadió ${qty} x ${name} (Talla: ${size}) a tu carrito!\nTotal: $${(price * qty).toLocaleString('es-CO')}`);
-        }
-    }
-</script>
+<!-- WhatsApp -->
+<a href="https://wa.me/573001234567?text=Hola! Me interesa el producto: @Uri.EscapeDataString(prodName)" target="_blank" class="whatsapp-btn">
+    <i class="bi bi-whatsapp"></i>
+</a>
 
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
-<!-- Iniciar Swiper -->
 <script>
-  var swiper = new Swiper(".mySwiper", {
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev",
-    },
-    pagination: {
-      el: ".swiper-pagination",
-      clickable: true,
-    },
-    loop: true,
-    autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
+    const basePrice = @prodPrice;
+
+    // ─── Swiper Init ───
+    var thumbSwiper = new Swiper(".mySwiper", {
+        spaceBetween: 8,
+        slidesPerView: "auto",
+        freeMode: true,
+        watchSlidesProgress: true,
+        direction: 'horizontal'
+    });
+    var mainSwiper = new Swiper(".mySwiper2", {
+        spaceBetween: 10,
+        navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+        thumbs: { swiper: thumbSwiper },
+        autoplay: { delay: 5000, disableOnInteraction: false }
+    });
+
+    // ─── Size selector ───
+    function selectSize(el, size) {
+        if (el.classList.contains('disabled')) return;
+        document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('selectedSizeText').innerText = size;
     }
-  });
+
+    // ─── Quantity ───
+    function updateQty(change) {
+        const input = document.getElementById('qtyInput');
+        const maxStock = @prodStock;
+        let val = parseInt(input.value) + change;
+        if (val < 1) val = 1;
+        if (val > maxStock && maxStock > 0) val = maxStock;
+        input.value = val;
+        document.getElementById('hiddenQty').value = val;
+        document.getElementById('totalPriceDisplay').innerText =
+            '$' + (basePrice * val).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+    }
+
+    // ─── Toast Notification ───
+    document.getElementById('addToCartForm')?.addEventListener('submit', function(e) {
+        showToast();
+    });
+
+    function showToast() {
+        const toast = document.getElementById('cartToast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ─── REVIEWS SYSTEM ───
+    const API = 'https://localhost:7066/api';
+    const PRODUCT_ID = @(Model?.IdProducto ?? 0);
+    let pickedRating = 0;
+
+    // Star picker interaction
+    document.querySelectorAll('#starPicker .sp').forEach(star => {
+        star.addEventListener('mouseenter', function() {
+            const v = parseInt(this.dataset.v);
+            document.querySelectorAll('#starPicker .sp').forEach(s => {
+                s.style.color = parseInt(s.dataset.v) <= v ? '#c9a84c' : '#333';
+            });
+        });
+        star.addEventListener('click', function() {
+            pickedRating = parseInt(this.dataset.v);
+        });
+    });
+    document.getElementById('starPicker')?.addEventListener('mouseleave', () => {
+        document.querySelectorAll('#starPicker .sp').forEach(s => {
+            s.style.color = parseInt(s.dataset.v) <= pickedRating ? '#c9a84c' : '#333';
+        });
+    });
+
+    // Load reviews
+    async function loadReviews() {
+        try {
+            const res = await fetch(`${API}/resena/producto/${PRODUCT_ID}`);
+            const data = await res.json();
+            // Update header stars
+            const avg = data.promedio || 0;
+            const total = data.total || 0;
+            document.getElementById('pdAvg').textContent = avg + ' / 5';
+            document.getElementById('pdCount').textContent = `(${total} valoraciones)`;
+            const full = Math.floor(avg);
+            const half = avg - full >= 0.5 ? 1 : 0;
+            const empty = 5 - full - half;
+            document.getElementById('pdStars').textContent = '★'.repeat(full) + (half ? '★' : '') + '☆'.repeat(empty);
+
+            // Render list
+            const list = document.getElementById('reviewsList');
+            if (!data.resenas || data.resenas.length === 0) {
+                list.innerHTML = '<div style="text-align:center;padding:30px;color:#888;font-size:0.82rem;">Sé el primero en dejar una reseña ✦</div>';
+                return;
+            }
+            list.innerHTML = data.resenas.map(r => `
+                <div class="rec-item">
+                    <div style="width:44px;height:44px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:#000;font-size:1rem;flex-shrink:0;">
+                        ${r.nombreUsuario.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="rec-content">
+                        <div class="rec-stars">${'★'.repeat(r.calificacion)}${'☆'.repeat(5-r.calificacion)}</div>
+                        <div class="rec-handle">${r.nombreUsuario}</div>
+                        <div class="rec-text">${r.comentario}</div>
+                        <div style="font-size:0.68rem;color:#555;margin-top:4px;">${r.fecha}</div>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) {
+            document.getElementById('reviewsList').innerHTML = '<div style="text-align:center;padding:20px;color:#555;font-size:0.8rem;">No se pudieron cargar las reseñas.</div>';
+        }
+    }
+
+    // Submit review
+    async function submitReview() {
+        const comment = document.getElementById('reviewText').value.trim();
+        const msgEl = document.getElementById('reviewMsg');
+        if (pickedRating === 0) { msgEl.style.display='block'; msgEl.style.color='#f87171'; msgEl.textContent='Selecciona una calificación (1-5 estrellas)'; return; }
+        if (!comment) { msgEl.style.display='block'; msgEl.style.color='#f87171'; msgEl.textContent='Escribe un comentario'; return; }
+        try {
+            const res = await fetch(`${API}/resena`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    idProducto: PRODUCT_ID,
+                    idUsuario: 0,
+                    calificacion: pickedRating,
+                    comentario: comment,
+                    nombreInvitado: document.getElementById('reviewName').value.trim() || 'Anónimo'
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                msgEl.style.display='block'; msgEl.style.color='var(--gold)'; msgEl.textContent='¡Reseña publicada! Gracias ✦';
+                document.getElementById('reviewText').value = '';
+                document.getElementById('reviewName').value = '';
+                pickedRating = 0;
+                document.querySelectorAll('#starPicker .sp').forEach(s => s.style.color='#333');
+                loadReviews();
+            } else {
+                msgEl.style.display='block'; msgEl.style.color='#f87171'; msgEl.textContent=data.message||'Error al publicar';
+            }
+        } catch(e) {
+            msgEl.style.display='block'; msgEl.style.color='#f87171'; msgEl.textContent='Error de conexión';
+        }
+    }
+
+    // Init
+    loadReviews();
 </script>
+

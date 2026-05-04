@@ -36,6 +36,7 @@ namespace LuxuryCo.Database.Data
         public DbSet<InventarioSede> InventariosSede { get; set; }
         public DbSet<HistorialAbastecimiento> HistorialesAbastecimiento { get; set; }
         public DbSet<TransferenciaStock> TransferenciasStock { get; set; }
+        public DbSet<HistorialChatAi> HistorialesChatAi { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,0 +1,308 @@
+<div id="ai-stylist-widget" class="floating-chat-container">
+    <!-- Botón Flotante -->
+    <button id="ai-stylist-toggle" class="btn-floating-chat shadow-lg">
+        <i class="fas fa-gem me-1"></i> Asesor de Estilo
+    </button>
+
+    <!-- Ventana del Chat -->
+    <div id="ai-stylist-box" class="chat-window shadow-lg d-none">
+        <div class="chat-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-gem text-gold me-2"></i>
+                <span class="fw-bold">LuxuryCo Stylist</span>
+            </div>
+            <div>
+                <button class="btn btn-sm text-white px-2" onclick="clearStylistChat()" title="Limpiar conversación">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="btn btn-sm text-white px-2" id="ai-stylist-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-body" id="stylist-messages">
+            <div class="msg-bubble ai-bubble mb-3">
+                ¡Hola! Soy tu asesor de estilo personal de LuxuryCo. ¿Buscas algo para una ocasión especial, o quieres explorar nuevas tendencias?
+            </div>
+        </div>
+        
+        <div id="stylist-typing" class="typing-indicator d-none">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+
+        <form id="stylist-form" class="chat-footer d-flex">
+            <input type="text" id="stylist-input" class="form-control" placeholder="Ej: Camisas de lino oscuro..." autocomplete="off" required>
+            <button type="submit" class="btn btn-send">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    :root {
+        --chat-primary: #000000;
+        --chat-secondary: #1a1a1a;
+        --chat-accent: #C9A84C;
+        --chat-text: #e0e0e0;
+    }
+
+    .floating-chat-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .btn-floating-chat {
+        background-color: var(--chat-primary);
+        color: var(--chat-accent);
+        border: 1px solid var(--chat-accent);
+        border-radius: 30px;
+        padding: 12px 24px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(201, 168, 76, 0.3) !important;
+    }
+
+    .btn-floating-chat:hover {
+        background-color: var(--chat-accent);
+        color: var(--chat-primary);
+        transform: translateY(-2px);
+    }
+
+    .chat-window {
+        width: 360px;
+        height: 500px;
+        background-color: var(--chat-primary);
+        border: 1px solid #333;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: absolute;
+        bottom: 60px;
+        right: 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+        transform-origin: bottom right;
+        animation: scaleIn 0.3s ease-out;
+    }
+
+    @@keyframes scaleIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .chat-header {
+        background-color: var(--chat-secondary);
+        padding: 15px;
+        border-bottom: 1px solid #333;
+        color: white;
+    }
+
+    .text-gold {
+        color: var(--chat-accent);
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background-color: #080808;
+    }
+
+    /* Scrollbar */
+    .chat-body::-webkit-scrollbar { width: 4px; }
+    .chat-body::-webkit-scrollbar-track { background: transparent; }
+    .chat-body::-webkit-scrollbar-thumb { background-color: #333; border-radius: 10px; }
+
+    .msg-bubble {
+        max-width: 85%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    .ai-bubble {
+        background-color: var(--chat-secondary);
+        color: var(--chat-text);
+        border-left: 2px solid var(--chat-accent);
+        margin-right: auto;
+        border-bottom-left-radius: 0;
+    }
+
+    .user-bubble {
+        background-color: #222;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 0;
+    }
+
+    .chat-footer {
+        padding: 10px;
+        background-color: var(--chat-secondary);
+        border-top: 1px solid #333;
+    }
+
+    .chat-footer input {
+        background-color: #111;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    .chat-footer input:focus {
+        background-color: #000;
+        color: white;
+        border-color: var(--chat-accent);
+        box-shadow: none;
+    }
+
+    .btn-send {
+        background-color: transparent;
+        color: var(--chat-accent);
+        border: none;
+        padding: 0 15px;
+        font-size: 1.2rem;
+    }
+
+    .btn-send:hover {
+        color: white;
+    }
+
+    /* Typing Animation */
+    .typing-indicator {
+        padding: 10px 15px;
+        background-color: var(--chat-secondary);
+        display: inline-block;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        margin-left: 15px;
+    }
+    .dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: var(--chat-accent);
+        border-radius: 50%;
+        margin: 0 2px;
+        animation: bounce 1.3s linear infinite;
+    }
+    .dot:nth-child(2) { animation-delay: -1.1s; }
+    .dot:nth-child(3) { animation-delay: -0.9s; }
+
+    @@keyframes bounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-4px); }
+    }
+</style>
+
+<script>
+    // Variables globales
+    const chatToggle = document.getElementById('ai-stylist-toggle');
+    const chatBox = document.getElementById('ai-stylist-box');
+    const chatClose = document.getElementById('ai-stylist-close');
+    const stylistForm = document.getElementById('stylist-form');
+    const stylistInput = document.getElementById('stylist-input');
+    const stylistMessages = document.getElementById('stylist-messages');
+    const stylistTyping = document.getElementById('stylist-typing');
+
+    // Generar o recuperar Session ID para la Base de Datos
+    let currentSessionId = localStorage.getItem('luxuryco_ai_session_id');
+    if (!currentSessionId) {
+        currentSessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('luxuryco_ai_session_id', currentSessionId);
+    }
+
+    // Ya no dependemos de localStorage para la memoria técnica, solo para pintar UI temporal.
+    // En el futuro, podríamos cargar el historial directamente del backend al abrir la página.
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Toggle chat
+        chatToggle.addEventListener('click', () => {
+            chatBox.classList.toggle('d-none');
+            if(!chatBox.classList.contains('d-none')) {
+                stylistInput.focus();
+                scrollToBottom();
+            }
+        });
+
+        chatClose.addEventListener('click', () => {
+            chatBox.classList.add('d-none');
+        });
+
+        // Enviar mensaje
+        stylistForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = stylistInput.value.trim();
+            if (!text) return;
+
+            // Limpiar input y agregar mensaje de usuario
+            stylistInput.value = '';
+            addMessageToUI(text, 'user');
+            
+            // Mostrar "escribiendo..."
+            stylistTyping.classList.remove('d-none');
+            scrollToBottom();
+
+            try {
+                // Ahora enviamos el sessionId en lugar de todo el historial
+                const response = await fetch('/Home/SendStylistMessage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: text,
+                        sessionId: currentSessionId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addMessageToUI(data.reply, 'ai');
+                } else {
+                    addMessageToUI("⚠️ " + (data.message || "Error al conectar con el servidor."), 'ai');
+                }
+            } catch (error) {
+                addMessageToUI("⚠️ Error de conexión.", 'ai');
+            } finally {
+                stylistTyping.classList.add('d-none');
+                scrollToBottom();
+            }
+        });
+    });
+
+    function addMessageToUI(text, sender) {
+        const div = document.createElement('div');
+        div.className = `msg-bubble ${sender}-bubble mb-3`;
+        
+        let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedText = formattedText.replace(/\n/g, '<br>');
+        
+        div.innerHTML = formattedText;
+        stylistMessages.appendChild(div);
+    }
+
+    function clearStylistChat() {
+        // Generar un nuevo ID de sesión vacía la memoria en el servidor
+        currentSessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('luxuryco_ai_session_id', currentSessionId);
+        
+        stylistMessages.innerHTML = `
+            <div class="msg-bubble ai-bubble mb-3">
+                ¡Hola! Soy tu asesor de estilo personal de LuxuryCo. ¿Buscas algo para una ocasión especial, o quieres explorar nuevas tendencias?
+            </div>
+        `;
+    }
+
+    function scrollToBottom() {
+        stylistMessages.scrollTop = stylistMessages.scrollHeight;
+    }
+</script>

@@ -57,10 +57,12 @@ public class ProductoService : IProductoService
     public async Task<IEnumerable<ProductoDto>> GetByCategoryAsync(string categoryName, bool adminView = false)
     {
         // Filtramos por el campo 'seccion' (ej: "Hombre", "Mujer", "Accesorios")
+        // O validamos mediante la relación de llave foránea (Categoria.nombre)
         var query = _context.Productos
             .Include(p => p.Categoria)
             .Include(p => p.Imagenes.Where(i => i.principal == true))
-            .Where(p => p.seccion != null && p.seccion.ToLower() == categoryName.ToLower())
+            .Where(p => (p.seccion != null && p.seccion.ToLower() == categoryName.ToLower()) ||
+                        (p.Categoria != null && p.Categoria.nombre.ToLower() == categoryName.ToLower()))
             .AsQueryable();
 
         if (!adminView)

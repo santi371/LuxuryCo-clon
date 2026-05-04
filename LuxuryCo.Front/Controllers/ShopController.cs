@@ -18,15 +18,22 @@ namespace LuxuryCo.Front.Controllers
             _httpClient = new HttpClient(handler);
         }
 
-        // GET: /Shop/Category/Hombre
+        // GET: /Shop/Category/Hombre  or /Shop/Category/Todos
         public async Task<IActionResult> Category(string id)
         {
             var categoryName = id ?? "Hombre";
-            ViewData["CategoryName"] = categoryName.ToUpper();
+            ViewData["CategoryName"] = categoryName.ToUpper() == "TODOS" 
+                ? "TODA LA COLECCIÓN" 
+                : categoryName.ToUpper();
 
             try
             {
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/producto/category/{categoryName}");
+                // Si es "Todos", traemos todos los productos activos
+                var endpoint = categoryName.ToLower() == "todos"
+                    ? $"{_apiBaseUrl}/producto"
+                    : $"{_apiBaseUrl}/producto/category/{categoryName}";
+
+                var response = await _httpClient.GetAsync(endpoint);
 
                 if (response.IsSuccessStatusCode)
                 {

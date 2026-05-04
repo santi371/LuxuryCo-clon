@@ -3,43 +3,49 @@
         <li class="nav-item">
             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Productos" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
                asp-action="Productos" style="border-radius: 0; letter-spacing: 1px;">
-               <i class="fas fa-box-open me-2"></i>PRODUCTOS
+               <i class="fas fa-box-open me-2"></i>Productos
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Marcas" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
                asp-action="Marcas" style="border-radius: 0; letter-spacing: 1px;">
-               <i class="fas fa-tags me-2"></i>MARCAS
+               <i class="fas fa-tags me-2"></i>Marcas
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Usuarios" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
                asp-action="Usuarios" style="border-radius: 0; letter-spacing: 1px;">
-               <i class="fas fa-users me-2"></i>USUARIOS
+               <i class="fas fa-users me-2"></i>Usuarios
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Categorias" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
                asp-action="Categorias" style="border-radius: 0; letter-spacing: 1px;">
-               <i class="fas fa-layer-group me-2"></i>CATEGORÍAS
+               <i class="fas fa-layer-group me-2"></i>Categorías
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Sedes" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
                asp-action="Sedes" style="border-radius: 0; letter-spacing: 1px;">
-               <i class="fas fa-store-alt me-2"></i>SEDES
+               <i class="fas fa-store-alt me-2"></i>Sedes
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Proveedores" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
                asp-action="Proveedores" style="border-radius: 0; letter-spacing: 1px;">
-               <i class="fas fa-truck me-2"></i>PROVEEDORES
+               <i class="fas fa-truck me-2"></i>Proveedores
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Inventario" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
                asp-action="Inventario" style="border-radius: 0; letter-spacing: 1px;">
-               <i class="fas fa-warehouse me-2"></i>INVENTARIO
+               <i class="fas fa-warehouse me-2"></i>Inventario
+            </a>
+        </li>
+        <li class="nav-item ms-3">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "AiAssistant" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-warning border-0")" 
+               asp-action="AiAssistant" style="border-radius: 0; letter-spacing: 1px; color: #C9A84C !important;">
+               <i class="fas fa-robot me-2"></i>Asistente IA
             </a>
         </li>
     </ul>

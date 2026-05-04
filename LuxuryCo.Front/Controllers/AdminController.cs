@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using LuxuryCo.Front.ViewModels;
 using System.Text;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LuxuryCo.Front.Controllers;
@@ -44,6 +42,27 @@ public class AdminController : Controller
     {
         // El dashboard principal será estático (solo el menú) o podría cargar pequeñas estadísticas
         return View();
+    }
+
+    public IActionResult AiAssistant()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SendAiMessage([FromBody] Dictionary<string, string> request)
+    {
+        AddAuthorizationHeader();
+        var jsonContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync($"{_apiBaseUrl}/Ai/admin-chat", jsonContent);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, "application/json");
+        }
+        
+        return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
     }
 
     // ============================================================

@@ -139,11 +139,15 @@
                             <!-- Sección de Vitrina -->
                             <div class="col-12">
                                 <label class="form-label text-secondary small fw-bold">SECCIÓN DE VITRINA</label>
+                                @{
+                                    var currentSeccion = Model?.Seccion ?? "";
+                                }
                                 <select name="Seccion" class="form-select admin-input" required>
-                                    <option value="" selected="@(string.IsNullOrEmpty(Model?.Seccion) ? "selected" : null)">Seleccionar en qué ventana principal aparecerá...</option>
-                                    <option value="Hombre" selected="@(Model?.Seccion == "Hombre" ? "selected" : null)">Hombres</option>
-                                    <option value="Mujer" selected="@(Model?.Seccion == "Mujer" ? "selected" : null)">Mujeres</option>
-                                    <option value="Accesorios" selected="@(Model?.Seccion == "Accesorios" ? "selected" : null)">Accesorios</option>
+                                    <option value="">Seleccionar en qué ventana principal aparecerá...</option>
+                                    @if (currentSeccion == "Hombre") { <option value="Hombre" selected>Hombres</option> } else { <option value="Hombre">Hombres</option> }
+                                    @if (currentSeccion == "Mujer") { <option value="Mujer" selected>Mujeres</option> } else { <option value="Mujer">Mujeres</option> }
+                                    @if (currentSeccion == "Accesorios") { <option value="Accesorios" selected>Accesorios</option> } else { <option value="Accesorios">Accesorios</option> }
+                                    @if (currentSeccion == "Todos") { <option value="Todos" selected>Todos (Unitaria)</option> } else { <option value="Todos">Todos (Unitaria)</option> }
                                 </select>
                             </div>
 
