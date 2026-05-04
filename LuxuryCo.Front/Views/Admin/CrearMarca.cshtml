@@ -1,0 +1,85 @@
+@model LuxuryCo.Front.ViewModels.MarcaViewModel
+@{
+    ViewData["Title"] = "Nueva Marca";
+    bool isEdit = Model?.IdMarca > 0;
+    string pageTitle = isEdit ? "Editar Marca" : "Nueva Marca";
+}
+
+<style>
+    .form-container { max-width: 700px; margin: 3rem auto; padding: 0 20px; }
+    .form-title { font-size: 1.4rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 1rem; margin-bottom: 2rem; }
+    .form-group { margin-bottom: 1.8rem; }
+    .form-label { font-size: 0.8rem; letter-spacing: 1.5px; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.5rem; }
+    .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 0.95rem; color: #111; background: #fff; transition: border-color .2s; box-sizing: border-box; }
+    .form-input:focus { outline: none; border-color: #111; }
+    .btn-submit { background: #111; color: #fff; padding: 14px 30px; font-weight: 700; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; width: 100%; transition: background .2s; }
+    .btn-submit:hover { background: #000; }
+    .btn-cancel { display: block; text-align: center; margin-top: 1.2rem; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; color: #888; text-decoration: none; }
+    .btn-cancel:hover { color: #111; }
+    .logo-preview { max-width: 150px; max-height: 150px; object-fit: contain; border: 1px solid #eee; padding: 8px; margin-top: 10px; background: #fafafa; }
+    .alert-error { background: #fff5f5; border-left: 3px solid #c53030; color: #742a2a; padding: 12px 16px; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link { font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; color: #555; text-decoration: none; display: inline-block; margin-bottom: 2rem; }
+    .back-link:hover { color: #111; }
+</style>
+
+<div class="form-container">
+    <a asp-action="Marcas" asp-controller="Admin" class="back-link">← Gestión de Marcas</a>
+    <h1 class="form-title">@pageTitle</h1>
+
+    <form method="post" enctype="multipart/form-data"
+          asp-action="@(isEdit ? "EditarMarca" : "CrearMarca")"
+          asp-controller="Admin"
+          asp-route-id="@Model?.IdMarca">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="All" class="alert-error" style="display: @(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+        <input type="hidden" name="IdMarca" value="@Model?.IdMarca" />
+        <input type="hidden" id="LogoUrl" name="LogoUrl" value="@Model?.LogoUrl" />
+
+        <div class="form-group">
+            <label class="form-label">Nombre de la Marca *</label>
+            <input type="text" name="Nombre" value="@Model?.Nombre" class="form-input" required placeholder="ej. Rolex, Gucci, Chanel..." />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea name="Descripcion" class="form-input" rows="3" placeholder="Descripción corta de la marca...">@Model?.Descripcion</textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Logo de la Marca</label>
+            @if (!string.IsNullOrEmpty(Model?.LogoUrl))
+            {
+                <div>
+                    <img src="@Model.LogoUrl" class="logo-preview" id="logoPreviewImg" alt="Logo actual" />
+                    <p style="font-size: 0.75rem; color: #888; margin-top: 4px;">Logo actual. Sube una nueva imagen para reemplazarlo.</p>
+                </div>
+            }
+            else
+            {
+                <img id="logoPreviewImg" class="logo-preview" style="display:none;" alt="Vista previa" />
+            }
+            <input type="file" name="LogoImagen" id="logoImagenInput" class="form-input" accept="image/*" style="margin-top: 10px;" />
+        </div>
+
+        <button type="submit" class="btn-submit">@(isEdit ? "GUARDAR CAMBIOS" : "CREAR MARCA")</button>
+    </form>
+    <a asp-action="Marcas" asp-controller="Admin" class="btn-cancel">Cancelar</a>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('logoImagenInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.getElementById('logoPreviewImg');
+                img.src = ev.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+}

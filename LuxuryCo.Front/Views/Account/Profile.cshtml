@@ -1,0 +1,89 @@
+@model LuxuryCo.Front.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<div class="container py-5" style="min-height: calc(100vh - 80px);">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="login-box mx-auto" style="background-color: #080808; border: 1px solid var(--color-border); border-top: 2px solid var(--color-gold); padding: 3rem;">
+                <h2 class="text-center mb-4" style="font-family: 'Playfair Display', serif; color: var(--color-white);">Mi Perfil</h2>
+                
+                <div class="text-center mb-4">
+                    <div class="position-relative d-inline-block">
+                        <!-- Imágen de Perfil -->
+                        <img id="profileImage" src="@(!string.IsNullOrEmpty(Model?.FotoPerfilUrl) ? Model.FotoPerfilUrl : "~/images/default-avatar.png")" 
+                             alt="Foto de Perfil" 
+                             class="rounded-circle border" 
+                             style="width: 150px; height: 150px; object-fit: cover; border-color: var(--color-gold) !important;" 
+                             onerror="this.src='https://cdn-icons-png.flaticon.com/512/1144/1144760.png'" />
+                        
+                        <!-- Botón flotante para editar foto -->
+                        <button type="button" class="btn btn-gold rounded-circle position-absolute" 
+                                style="bottom: 0; right: 0; width: 40px; height: 40px; padding: 0;"
+                                onclick="document.getElementById('fileInput').click();">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formulario Oculto para Subir la Foto -->
+                <form id="uploadForm" enctype="multipart/form-data" class="d-none">
+                    <input type="file" id="fileInput" name="file" accept="image/*" onchange="uploadPhoto()" />
+                </form>
+
+                <!-- Datos del Usuario -->
+                <div class="mt-5">
+                    <div class="mb-3 border-bottom pb-2" style="border-color: #222 !important;">
+                        <span style="font-size: 0.75rem; color: var(--color-gold); text-transform: uppercase;">NOMBRE COMPLETO</span>
+                        <h5 class="text-white mt-1">@(Model?.Nombre ?? "Usuario") @(Model?.Apellido ?? "")</h5>
+                    </div>
+                    <div class="mb-4 border-bottom pb-2" style="border-color: #222 !important;">
+                        <span style="font-size: 0.75rem; color: var(--color-gold); text-transform: uppercase;">CORREO ELECTRÓNICO</span>
+                        <h5 class="text-white mt-1">@(Model?.Email ?? "correo@ejemplo.com")</h5>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-light w-100 py-2 d-flex align-items-center justify-content-center gap-2" style="border-radius: 0; text-transform: uppercase;">
+                        CERRAR SESIÓN
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function uploadPhoto() {
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            
+            if (fileInput.files.length > 0) {
+                formData.append("file", fileInput.files[0]);
+                
+                // Mostrar un estado de carga opcional aquí
+
+                fetch('/Account/UploadProfilePicture', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Forzar a recargar la imágen agregando un query string aleatorio
+                        document.getElementById('profileImage').src = data.url + "?t=" + new Date().getTime();
+                        alert("Foto de perfil actualizada correctamente.");
+                    } else {
+                        alert("Error al subir la foto: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Error crítico al subir la imagen.");
+                });
+            }
+        }
+    </script>
+}

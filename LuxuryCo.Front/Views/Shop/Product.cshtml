@@ -1,0 +1,434 @@
+@model dynamic
+
+@{
+    // Provide a fallback name if model is null (e.g. database still empty)
+    var prodName = Model != null ? Model.Nombre : "CAMISETA OVERSIZE FLAME AZUL";
+    var prodPrice = Model != null ? Model.Precio : 280000.00;
+    var prodBrand = Model != null ? Model.MarcaNombre : "MONEY MAKERS";
+    var imgUrl = Model != null && Model.ImagenPrincipalUrl != null ? Model.ImagenPrincipalUrl : "https://images.unsplash.com/photo-1618517351616-38fb9c5210c6?q=80&w=800&auto=format&fit=crop";
+    
+    ViewData["Title"] = prodName;
+}
+
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+<style>
+    .product-detail-container {
+        display: flex;
+        flex-wrap: wrap;
+        min-height: calc(100vh - 78px);
+        background-color: #fff;
+    }
+    
+    .product-gallery {
+        flex: 1;
+        min-width: 50%;
+        background-color: #f7f7f7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+    
+    .product-gallery img {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+    }
+    
+    .product-info-panel {
+        flex: 1;
+        min-width: 50%;
+        padding: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+    
+    .prod-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+        color: #000;
+        line-height: 1.2;
+    }
+    
+    .prod-price {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 30px;
+    }
+    
+    .prod-meta {
+        font-size: 0.85rem;
+        color: #555;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .brand-value {
+        color: #000;
+        font-weight: 600;
+    }
+    
+    /* Celeb mentions */
+    .celeb-section {
+        margin: 30px 0;
+        text-align: center;
+    }
+    .celeb-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: lowercase;
+        margin-bottom: 15px;
+    }
+    .celeb-faces {
+        display: flex;
+        justify-content: center;
+        gap: -10px;
+        flex-wrap: wrap;
+    }
+    .celeb-face {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        object-fit: cover;
+        margin-left: -15px;
+        position: relative;
+    }
+    .celeb-face:first-child {
+        margin-left: 0;
+    }
+    
+    /* Size Selector */
+    .size-selector {
+        margin: 30px 0;
+    }
+    .size-label {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+    .size-options {
+        display: flex;
+        gap: 10px;
+    }
+    .size-box {
+        width: 50px;
+        height: 50px;
+        border: 1px solid #ddd;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    .size-box:hover, .size-box.active {
+        border-color: #000;
+        background-color: #fafafa;
+    }
+    .size-box.disabled {
+        color: #ccc;
+        cursor: not-allowed;
+        position: relative;
+    }
+    .size-box.disabled::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        background: #ccc;
+        transform: rotate(-45deg);
+    }
+    
+    /* Quantity */
+    .quantity-selector {
+        margin-bottom: 30px;
+    }
+    .qty-controls {
+        display: inline-flex;
+        border: 1px solid #ddd;
+        height: 40px;
+    }
+    .qty-btn {
+        background: transparent;
+        border: none;
+        width: 40px;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+    .qty-input {
+        width: 50px;
+        text-align: center;
+        border: none;
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        font-weight: 600;
+    }
+    
+    .total-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 15px;
+    }
+    
+    /* Actions */
+    .btn-add-cart {
+        background-color: #000;
+        color: #fff;
+        border: 1px solid #000;
+        padding: 15px 30px;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 2px;
+        width: 100%;
+        margin-top: 20px;
+        transition: all 0.3s;
+    }
+    .btn-add-cart:hover {
+        background-color: transparent;
+        color: #000;
+    }
+    
+    /* Whatsapp Floater */
+    .whatsapp-floater {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        z-index: 100;
+    }
+    .whatsapp-tooltip {
+        background: #fff;
+        padding: 10px 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        font-size: 0.85rem;
+        border-radius: 4px;
+    }
+    .whatsapp-btn {
+        background-color: #25D366;
+        color: #fff;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 30px;
+        box-shadow: 0 4px 10px rgba(37, 211, 102, 0.4);
+        text-decoration: none;
+        transition: transform 0.2s;
+    }
+    .whatsapp-btn:hover {
+        transform: scale(1.1);
+        color: #fff;
+    }
+    
+    @@media (max-width: 992px) {
+        .product-gallery, .product-info-panel {
+            min-width: 100%;
+        }
+        .product-gallery {
+            padding: 20px;
+            height: 50vh;
+        }
+        .product-info-panel {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="product-detail-container">
+    <div class="product-gallery" style="position:relative;">
+        <div style="z-index:10; position: absolute; top: 100px; left: 40px; background: #fff; padding: 10px 20px; font-weight: bold; transform: rotate(-90deg); transform-origin: left top; letter-spacing: 2px;">
+            10% off
+        </div>
+        
+        <!-- Swiper -->
+        <div class="swiper mySwiper" style="width: 100%; height: 100%;">
+            <div class="swiper-wrapper">
+                @if (Model != null && Model.ImagenesUrls != null && Model.ImagenesUrls.Count > 0)
+                {
+                    foreach (var url in Model.ImagenesUrls)
+                    {
+                        <div class="swiper-slide" style="display:flex; justify-content:center; align-items:center;">
+                            <img src="@url" alt="@prodName" />
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="swiper-slide" style="display:flex; justify-content:center; align-items:center;">
+                        <img src="@imgUrl" id="mainImage" alt="@prodName" />
+                    </div>
+                }
+            </div>
+            <!-- Componentes Swiper UI -->
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-next" style="color: #000;"></div>
+            <div class="swiper-button-prev" style="color: #000;"></div>
+        </div>
+    </div>
+    
+    <div class="product-info-panel">
+        <h1 class="prod-title">@prodName</h1>
+        <div class="prod-price" id="basePrice" data-price="@prodPrice">$@(String.Format("{0:N2}", prodPrice))</div>
+        
+        <!-- Trust Badges -->
+        <div class="d-flex flex-column gap-2 mb-4">
+            <div class="p-2 bg-light border" style="font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
+                <span>🚚</span> Envío Gratis en Todas las Compras
+            </div>
+            <div class="p-2 bg-light border" style="font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
+                <span>🔒</span> Pago 100% Seguro y Protegido
+            </div>
+        </div>
+
+        <p style="font-size: 0.95rem; color: #444; line-height: 1.6; margin-bottom: 25px;">
+            La @prodName captura la esencia del streetwear con una estética imponente y llena de carácter. Su diseño exclusivo de @prodBrand en la parte trasera, enmarca el logo con un estilo audaz y enérgico que rinde homenaje a la cultura urbana.
+        </p>
+
+        <div class="prod-meta">
+            Proveedor: <span class="brand-value">@prodBrand</span>
+        </div>
+        <div class="prod-meta">
+            Referencia: <span class="brand-value">LXC-OVERSIZE-8001</span>
+        </div>
+        
+        <div class="celeb-section">
+            <div class="celeb-title">Nuestras marcas han vestido artistas y celebridades como:</div>
+            <div class="celeb-faces">
+                <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 1"/>
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 2"/>
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 3"/>
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 4"/>
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" class="celeb-face" alt="Celeb 5"/>
+            </div>
+        </div>
+        
+        <div class="size-selector">
+            <span class="size-label">Size: <strong id="selectedSizeText">S</strong></span>
+            <div class="size-options">
+                <div class="size-box disabled">XS</div>
+                <div class="size-box active" onclick="selectSize(this, 'S')">S</div>
+                <div class="size-box" onclick="selectSize(this, 'M')">M</div>
+                <div class="size-box" onclick="selectSize(this, 'L')">L</div>
+                <div class="size-box" onclick="selectSize(this, 'XL')">XL</div>
+                <div class="size-box disabled">XXL</div>
+            </div>
+        </div>
+        
+        <div class="quantity-selector">
+            <div class="size-label">Cantidad:</div>
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                <input type="text" id="qtyInput" class="qty-input" value="1" readonly>
+                <button class="qty-btn" onclick="updateQty(1)">+</button>
+            </div>
+        </div>
+        
+        <div class="total-price">
+            Total parcial: <span id="totalPriceDisplay">$@(String.Format("{0:N2}", prodPrice))</span>
+        </div>
+        
+        <form asp-controller="Cart" asp-action="Add" method="post" id="addToCartForm">
+            <input type="hidden" name="productId" value="@Model?.IdProducto" />
+            <input type="hidden" name="quantity" id="hiddenQty" value="1" />
+            <button type="submit" class="btn-add-cart">AGREGAR AL CARRITO</button>
+        </form>
+    </div>
+</div>
+
+<div class="whatsapp-floater">
+    <div class="whatsapp-tooltip">¿Necesitas asesoría?</div>
+    <a href="https://wa.me/1234567890" target="_blank" class="whatsapp-btn">
+        <i class="bi bi-whatsapp"></i>
+    </a>
+</div>
+
+<script>
+    let basePrice = @prodPrice;
+    
+    function selectSize(element, size) {
+        if (element.classList.contains('disabled')) return;
+        
+        // Remove active from all
+        document.querySelectorAll('.size-box').forEach(el => el.classList.remove('active'));
+        
+        // Add active to clicked
+        element.classList.add('active');
+        document.getElementById('selectedSizeText').innerText = size;
+    }
+    
+    function updateQty(change) {
+        let input = document.getElementById('qtyInput');
+        let current = parseInt(input.value);
+        let newQty = current + change;
+        
+        if (newQty >= 1) {
+            input.value = newQty;
+            document.getElementById('hiddenQty').value = newQty;
+            updateTotal(newQty);
+        }
+    }
+    
+    function updateTotal(qty) {
+        let total = basePrice * qty;
+        // Format to currency
+        document.getElementById('totalPriceDisplay').innerText = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 2});
+    }
+
+    function addToCart(name, price) {
+        let qty = parseInt(document.getElementById('qtyInput').value);
+        let size = document.getElementById('selectedSizeText').innerText;
+        
+        // Here we simulate adding to cart
+        let cartCountBadge = document.getElementById('cart-badge-count');
+        if (cartCountBadge) {
+            let currentCount = parseInt(cartCountBadge.innerText) || 0;
+            currentCount += qty;
+            
+            // Animate badge
+            cartCountBadge.innerText = currentCount;
+            cartCountBadge.style.display = 'flex';
+            cartCountBadge.classList.add('animate__animated', 'animate__bounceIn');
+            setTimeout(() => {
+                cartCountBadge.classList.remove('animate__animated', 'animate__bounceIn');
+            }, 1000);
+            
+            // Flash a quick message or notification
+            alert(`¡Se añadió ${qty} x ${name} (Talla: ${size}) a tu carrito!\nTotal: $${(price * qty).toLocaleString('es-CO')}`);
+        }
+    }
+</script>
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<!-- Iniciar Swiper -->
+<script>
+  var swiper = new Swiper(".mySwiper", {
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true,
+    },
+    loop: true,
+    autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+    }
+  });
+</script>

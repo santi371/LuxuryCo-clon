@@ -1,0 +1,16 @@
+  Determinando los proyectos que se van a restaurar...
+  Todos los proyectos están actualizados para la restauración.
+  LuxuryCo.Database -> C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Database\bin\Debug\net9.0\LuxuryCo.Database.dll
+C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\Controllers\AdminController.cs(662,36): error CS0246: El nombre del tipo o del espacio de nombres 'SelectListItem' no se encontró (¿falta una directiva using o una referencia de ensamblado?) [C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\LuxuryCo.Front.csproj]
+C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\Controllers\AdminController.cs(679,36): error CS0246: El nombre del tipo o del espacio de nombres 'SelectListItem' no se encontró (¿falta una directiva using o una referencia de ensamblado?) [C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\LuxuryCo.Front.csproj]
+
+ERROR al compilar.
+
+C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\Controllers\AdminController.cs(662,36): error CS0246: El nombre del tipo o del espacio de nombres 'SelectListItem' no se encontró (¿falta una directiva using o una referencia de ensamblado?) [C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\LuxuryCo.Front.csproj]
+C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\Controllers\AdminController.cs(679,36): error CS0246: El nombre del tipo o del espacio de nombres 'SelectListItem' no se encontró (¿falta una directiva using o una referencia de ensamblado?) [C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\LuxuryCo.Front.csproj]
+    0 Advertencia(s)
+    2 Errores
+
+Tiempo transcurrido 00:00:01.46
+
+Hay actualizaciones de carga de trabajo disponibles. Ejecute "dotnet workload list" para obtener más información.

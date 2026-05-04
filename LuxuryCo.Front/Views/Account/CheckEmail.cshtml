@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Verifica tu Correo";
+}
+
+<div class="auth-page-bg">
+    <div class="auth-card text-center">
+        <div style="font-size:3.5rem;color:#d4af37;margin-bottom:1.5rem;">
+            <i class="fas fa-envelope-open-text"></i>
+        </div>
+
+        <div class="auth-brand-title mb-2">Revisa tu Bandeja</div>
+        <div class="auth-brand-sub">Correo enviado exitosamente</div>
+
+        <hr class="auth-divider" />
+
+        <p style="font-size:.88rem;color:#aaa;line-height:1.8;margin-bottom:2rem;">
+            Hemos enviado un enlace seguro a tu dirección de correo.<br>
+            <strong style="color:#fff;">Haz clic en ese enlace para activar o recuperar tu cuenta</strong><br>
+            antes de intentar iniciar sesión.
+        </p>
+
+        <a asp-action="Login" asp-controller="Account" class="btn-auth-primary" style="text-decoration:none;display:block;">
+            <i class="fas fa-arrow-left me-2"></i> Volver al Inicio de Sesión
+        </a>
+    </div>
+</div>

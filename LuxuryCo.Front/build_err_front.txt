@@ -1,0 +1,10 @@
+﻿C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(5394,5): error MSB3027: No se pudo copiar "C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\obj\Debug\net9.0\apphost.exe" en "bin\Debug\net9.0\LuxuryCo.Front.exe". Se super├│ el n├║mero de 10 reintentos. Error. El archivo se ha bloqueado por: "LuxuryCo.Front (6896)" [C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\LuxuryCo.Front.csproj]
+C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(5394,5): error MSB3021: No se puede copiar "C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\obj\Debug\net9.0\apphost.exe" en "bin\Debug\net9.0\LuxuryCo.Front.exe". The process cannot access the file 'C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\bin\Debug\net9.0\LuxuryCo.Front.exe' because it is being used by another process. [C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\LuxuryCo.Front.csproj]
+
+ERROR al compilar.
+    10 Advertencia(s)
+    2 Errores
+
+Tiempo transcurrido 00:00:12.53
+
+Hay actualizaciones de carga de trabajo disponibles. Ejecute "dotnet workload list" para obtener m├ís informaci├│n.

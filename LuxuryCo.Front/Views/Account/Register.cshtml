@@ -1,0 +1,59 @@
+@model LuxuryCo.Front.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Crear una Cuenta";
+}
+
+<div class="auth-page-bg">
+    <div class="auth-card">
+
+        <div class="text-center mb-4">
+            <div class="auth-brand-title">LUXURYCO</div>
+            <div class="auth-brand-sub">Únete a la experiencia</div>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="auth-alert-error"><i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]</div>
+        }
+
+        <form method="post" asp-action="Register" asp-controller="Account">
+            @Html.AntiForgeryToken()
+
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label class="auth-label">Nombre</label>
+                    <input name="Nombre" type="text" class="auth-input" placeholder="Carlos" required />
+                </div>
+                <div class="col-6">
+                    <label class="auth-label">Apellido</label>
+                    <input name="Apellido" type="text" class="auth-input" placeholder="García" required />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="auth-label">Correo Electrónico</label>
+                <input name="Email" type="email" class="auth-input" placeholder="tu@correo.com" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="auth-label">Teléfono (Opcional)</label>
+                <input name="Telefono" type="text" class="auth-input" placeholder="+57 300 000 0000" />
+            </div>
+
+            <div class="mb-5">
+                <label class="auth-label">Contraseña</label>
+                <input name="Password" type="password" class="auth-input" placeholder="Mínimo 6 caracteres" required minlength="6" />
+            </div>
+
+            <button type="submit" class="btn-auth-primary mb-3">
+                <i class="fas fa-user-plus me-2"></i> Crear Cuenta
+            </button>
+
+            <hr class="auth-divider" />
+
+            <p class="text-center mb-0" style="font-size:.83rem;">
+                ¿Ya tienes cuenta? <a asp-action="Login" asp-controller="Account" class="auth-link">Inicia sesión aquí</a>
+            </p>
+        </form>
+    </div>
+</div>

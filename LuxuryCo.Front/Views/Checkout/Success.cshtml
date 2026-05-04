@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "¡Compra Exitosa!";
+}
+
+<div class="container-fluid py-5 d-flex align-items-center justify-content-center" style="background-color: #000; min-height: calc(100vh - 78px); color: #fff;">
+    <div class="text-center p-5 scale-in" style="background-color: #0c0c0c; border: 1px solid #222; max-width: 600px;">
+        
+        <i class="fas fa-check-circle fa-4x text-success mb-4"></i>
+        
+        <h1 class="display-6 fw-bold mb-3" style="font-family: 'Playfair Display', serif; letter-spacing: 1px;">PEDIDO CONFIRMADO</h1>
+        
+        <p class="text-secondary mb-4">
+            Agradecemos tu confianza en LuxuryCo. Tu transacción fue procesada con el número de rastreo bancario <br />
+            <strong class="text-white mt-2 d-inline-block p-2 bg-dark rounded border border-secondary" style="letter-spacing: 2px;">@TempData["TrackingNumber"]</strong>
+        </p>
+
+        <p class="text-secondary mb-5 small">
+            Tu Nro. de Pedido interno es <strong>#@TempData["OrderId"]</strong>. Hemos enviado un correo simulado con los detalles de la factura original y el desglose de IVA. Reclama tu paquete en 24h.
+        </p>
+
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light px-5 py-3 rounded-0 fw-bold" style="letter-spacing: 2px; border-width: 2px;">
+            VOLVER A LA BOUTIQUE
+        </a>
+    </div>
+</div>
+
+<style>
+    .scale-in {
+        animation: scaleIn 0.6s ease-out forwards;
+    }
+    @@keyframes scaleIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>

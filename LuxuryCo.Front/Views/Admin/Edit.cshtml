@@ -1,0 +1,183 @@
+@using LuxuryCo.Front.ViewModels
+@model ProductoViewModel
+@{
+    ViewData["Title"] = "Editar Producto";
+    var categorias = ViewBag.Categorias as List<CategoriaViewModel> ?? new List<CategoriaViewModel>();
+    var marcas    = ViewBag.Marcas    as List<MarcaDropdownViewModel> ?? new List<MarcaDropdownViewModel>();
+}
+
+<div class="container py-5" style="background-color: #000; min-height: 100vh; color: #fff;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-5">
+                <a asp-action="Index" class="btn btn-link text-secondary text-decoration-none p-0 me-3">
+                    <i class="fas fa-arrow-left fa-lg"></i>
+                </a>
+                <h1 class="h2 fw-bold mb-0" style="font-family: 'Playfair Display', serif; letter-spacing: 1px;">EDITAR PRODUCTO</h1>
+            </div>
+
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger px-4 py-3 mb-4" style="border-radius: 0; background-color: #3d1a1a; color: #fff; border: 1px solid #7d2e2e;">
+                    <i class="fas fa-exclamation-triangle me-2"></i> @ViewBag.ErrorMessage
+                </div>
+            }
+
+            <div class="card" style="background-color: #111; border: 1px solid #222; border-radius: 0;">
+                <div class="card-body p-5">
+                    <form asp-action="Edit" asp-route-id="@Model?.IdProducto" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-4">
+                            <!-- Nombre -->
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold">NOMBRE DEL PRODUCTO</label>
+                                <input name="Nombre" type="text" class="form-control admin-input" value="@Model?.Nombre" required />
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold">DESCRIPCIÓN</label>
+                                <textarea name="Descripcion" class="form-control admin-input" rows="4">@Model?.Descripcion</textarea>
+                            </div>
+
+                            <!-- Precio y Stock -->
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">PRECIO (COP)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary">$</span>
+                                    <input name="Precio" type="number" step="0.01" class="form-control admin-input" value="@Model?.Precio" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">STOCK DISPONIBLE</label>
+                                <input name="Stock" type="number" class="form-control admin-input" value="@Model?.Stock" required />
+                            </div>
+
+                            <!-- Categoría y Marca -->
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">CATEGORÍA</label>
+                                <select name="IdCategoria" class="form-select admin-input" required>
+                                    <option value="">Seleccionar...</option>
+                                    @foreach (var cat in categorias)
+                                    {
+                                        if (Model?.CategoriaNombre == cat.nombre)
+                                        {
+                                            <option value="@cat.id_categoria" selected>@cat.nombre</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@cat.id_categoria">@cat.nombre</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">MARCA / PROVEEDOR</label>
+                                <select name="IdMarca" class="form-select admin-input" required>
+                                    <option value="">Seleccionar...</option>
+                                    @foreach (var marca in marcas)
+                                    {
+                                        if (Model?.MarcaNombre == marca.Nombre)
+                                        {
+                                            <option value="@marca.IdMarca" selected>@marca.Nombre</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@marca.IdMarca">@marca.Nombre</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold">AÑADIR NUEVAS IMÁGENES (Múltiple)</label>
+                                <input type="file" name="Imagenes" multiple accept="image/*" class="form-control admin-input file-input" />
+                                <small class="text-secondary d-block mt-1 mb-4">Sube más imágenes para este producto. Las nuevas aparecerán al final.</small>
+
+                                <!-- Grid Administrador de Imágenes Actuales -->
+                                @if (Model?.ImagenesDetalle != null && Model.ImagenesDetalle.Count > 0)
+                                {
+                                    <div class="card bg-dark border-secondary p-3 mt-2">
+                                        <label class="form-label text-white small fw-bold mb-3"><i class="fas fa-images"></i> GESTIÓN DE IMÁGENES CARGADAS</label>
+                                        <div class="row g-3">
+                                            @foreach (var img in Model.ImagenesDetalle)
+                                            {
+                                                <div class="col-6 col-md-4 col-lg-3 position-relative">
+                                                    @if (img.Principal)
+                                                    {
+                                                        <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2" style="z-index: 5;"><i class="fas fa-star"></i> Principal</span>
+                                                    }
+                                                    
+                                                    <div class="border border-secondary p-1 text-center" style="background: #111;">
+                                                        <img src="@img.UrlImagen" alt="Foto" class="img-fluid" style="height: 120px; object-fit: contain;" />
+                                                        
+                                                        <div class="mt-2 text-center d-flex justify-content-between p-1">
+                                                            @if (!img.Principal)
+                                                            {
+                                                                <button type="submit" asp-action="SetPrimaryImage" asp-route-idProducto="@Model.IdProducto" asp-route-idImagen="@img.IdImagen" class="btn btn-sm btn-outline-warning p-1 px-2" title="Establecer como principal" formnovalidate>
+                                                                    <i class="fas fa-star"></i>
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <div></div> <!-- spacer -->
+                                                            }
+                                                            
+                                                            <button type="submit" asp-action="DeleteImage" asp-route-idProducto="@Model.IdProducto" asp-route-idImagen="@img.IdImagen" class="btn btn-sm btn-outline-danger p-1 px-2" title="Borrar foto" formnovalidate onclick="return confirm('¿Eliminar esta imagen de forma permanente?');">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Sección de Vitrina -->
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold">SECCIÓN DE VITRINA</label>
+                                <select name="Seccion" class="form-select admin-input" required>
+                                    <option value="" selected="@(string.IsNullOrEmpty(Model?.Seccion) ? "selected" : null)">Seleccionar en qué ventana principal aparecerá...</option>
+                                    <option value="Hombre" selected="@(Model?.Seccion == "Hombre" ? "selected" : null)">Hombres</option>
+                                    <option value="Mujer" selected="@(Model?.Seccion == "Mujer" ? "selected" : null)">Mujeres</option>
+                                    <option value="Accesorios" selected="@(Model?.Seccion == "Accesorios" ? "selected" : null)">Accesorios</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 mt-5">
+                                <button type="submit" class="btn btn-light w-100 py-3 fw-bold" style="border-radius: 0; letter-spacing: 2px;">
+                                    ACTUALIZAR PRODUCTO
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-input {
+        background-color: #1a1a1a !important;
+        border: 1px solid #333 !important;
+        color: #fff !important;
+        border-radius: 0 !important;
+        padding: 12px 15px !important;
+    }
+    .admin-input:focus {
+        border-color: #555 !important;
+        box-shadow: none !important;
+        background-color: #222 !important;
+    }
+    .admin-input::placeholder {
+        color: #555 !important;
+    }
+    .form-select.admin-input {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    }
+</style>
+

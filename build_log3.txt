@@ -1,0 +1,13 @@
+  Determinando los proyectos que se van a restaurar...
+  Todos los proyectos están actualizados para la restauración.
+  LuxuryCo.Database -> C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Database\bin\Debug\net9.0\LuxuryCo.Database.dll
+  LuxuryCo.Front -> C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Front\bin\Debug\net9.0\LuxuryCo.Front.dll
+  LuxuryCo.Back -> C:\Users\karla\Documents\LUXURY_CO\LuxuryCo.Back\bin\Debug\net9.0\LuxuryCo.Back.dll
+
+Compilación correcta.
+    0 Advertencia(s)
+    0 Errores
+
+Tiempo transcurrido 00:00:01.46
+
+Hay actualizaciones de carga de trabajo disponibles. Ejecute "dotnet workload list" para obtener más información.
