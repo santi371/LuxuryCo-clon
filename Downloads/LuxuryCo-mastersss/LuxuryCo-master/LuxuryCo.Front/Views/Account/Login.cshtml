@@ -1,0 +1,77 @@
+@model LuxuryCo.Front.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="auth-page-bg">
+    <div class="auth-card">
+
+        <div class="text-center mb-4">
+            <div class="auth-brand-title">LUXURYCO</div>
+            <div class="auth-brand-sub">Acceso a tu cuenta</div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="auth-alert-success"><i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="auth-alert-error"><i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]</div>
+        }
+
+        <div id="loginView">
+            <form method="post" asp-action="Login" asp-controller="Account">
+                <div asp-validation-summary="All" class="auth-alert-error" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+                <div class="mb-4">
+                    <label class="auth-label">Correo Electrónico</label>
+                    <input name="Email" type="email" class="auth-input" placeholder="tu@correo.com" required />
+                </div>
+                <div class="mb-5">
+                    <label class="auth-label">Contraseña</label>
+                    <input name="Password" type="password" class="auth-input" placeholder="••••••••" required />
+                </div>
+
+                <button type="submit" class="btn-auth-primary mb-3">
+                    <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+                </button>
+
+                <hr class="auth-divider" />
+
+                <div class="d-flex justify-content-between">
+                    <span class="auth-link" onclick="toggleViews('forgot')">¿Olvidaste tu contraseña?</span>
+                    <a asp-action="Register" asp-controller="Account" class="auth-link">Crear una cuenta</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="forgotPasswordView" style="display:none;">
+            <p class="mb-1" style="color:#aaa;font-size:.88rem;">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
+            <hr class="auth-divider" />
+            <form method="post" asp-action="ForgotPassword" asp-controller="Account">
+                @Html.AntiForgeryToken()
+                <div class="mb-5">
+                    <label class="auth-label">Correo Electrónico</label>
+                    <input name="Email" type="email" class="auth-input" placeholder="tu@correo.com" required />
+                </div>
+                <button type="submit" class="btn-auth-primary mb-3">
+                    <i class="fas fa-paper-plane me-2"></i> Enviar Enlace
+                </button>
+                <div class="text-center mt-2">
+                    <span class="auth-link" onclick="toggleViews('login')">← Volver al inicio de sesión</span>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function toggleViews(view) {
+    document.getElementById('loginView').style.display         = view === 'login'  ? 'block' : 'none';
+    document.getElementById('forgotPasswordView').style.display = view === 'forgot' ? 'block' : 'none';
+}
+</script>
+}

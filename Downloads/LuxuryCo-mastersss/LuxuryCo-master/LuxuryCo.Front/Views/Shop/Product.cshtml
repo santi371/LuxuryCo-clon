@@ -1,0 +1,548 @@
+@model LuxuryCo.Front.ViewModels.ProductoViewModel
+
+@{
+    var prodName = Model != null ? Model.Nombre : "Adidas Hombre BARREDA MUNDIAL Zapatos";
+    var prodPrice = Model != null ? Model.Precio : 90.00m;
+    var prodBrand = Model != null ? Model.MarcaNombre : "Adidas";
+    var imgUrl = Model != null && Model.ImagenPrincipalUrl != null ? Model.ImagenPrincipalUrl : "https://scaleflex.cloudimg.io/v7/demo/samples/360/adidas/1.jpg";
+    
+    ViewData["Title"] = prodName;
+}
+
+<!-- Premium Styles -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --primary-color: #0053a0;
+        --secondary-color: #3665f3;
+        --accent-color: #e53238;
+        --text-main: #191919;
+        --text-muted: #707070;
+        --border-color: #e5e5e5;
+        --bg-light: #f7f7f7;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--text-main);
+        background-color: #fff;
+    }
+
+    .breadcrumb-nav {
+        padding: 15px 0;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .product-container {
+        display: grid;
+        grid-template-columns: 80px 1fr 400px;
+        gap: 30px;
+        margin-top: 20px;
+        padding-bottom: 100px;
+    }
+
+    /* Thumbnails */
+    .thumb-column {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .thumb-item {
+        width: 70px;
+        height: 70px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+    }
+
+    .thumb-item:hover, .thumb-item.active {
+        border-color: #000;
+        border-width: 2px;
+    }
+
+    .thumb-item img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* Main Display */
+    .viewer-column {
+        position: relative;
+        background-color: var(--bg-light);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 500px;
+    }
+
+    /* 360 Viewer specific styles */
+    .cloudimage-360 {
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+    }
+    .cloudimage-360:active {
+        cursor: grabbing;
+    }
+
+    .viewer-actions {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 5;
+    }
+
+    .action-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: background 0.2s;
+    }
+
+    .action-btn:hover {
+        background: var(--bg-light);
+    }
+
+    .instruction-overlay {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(4px);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Product Info Column */
+    .info-column {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .brand-link {
+        font-weight: 700;
+        text-decoration: none;
+        color: #000;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+        display: inline-block;
+    }
+
+    .product-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 15px;
+    }
+
+    .rating-line {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .price-section {
+        border-top: 1px solid var(--border-color);
+        padding-top: 20px;
+        margin-bottom: 25px;
+    }
+
+    .price-main {
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .price-approx {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .selection-group {
+        margin-bottom: 20px;
+    }
+
+    .selection-label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .custom-select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 12px;
+        cursor: pointer;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        width: 120px;
+        overflow: hidden;
+    }
+
+    .qty-btn {
+        flex: 1;
+        height: 44px;
+        border: none;
+        background: #fff;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .qty-btn:hover {
+        background: var(--bg-light);
+    }
+
+    .qty-input {
+        width: 40px;
+        text-align: center;
+        border: none;
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        font-weight: 600;
+    }
+
+    .availability-badge {
+        font-size: 0.8rem;
+        color: #d9534f;
+        margin-top: 5px;
+        display: none;
+    }
+
+    /* Actions */
+    .action-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-buy {
+        background-color: var(--secondary-color);
+        color: #fff;
+        border: none;
+        padding: 15px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: background 0.2s;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .btn-buy:hover {
+        background-color: #2b51cc;
+        color: #fff;
+    }
+
+    .btn-cart {
+        background-color: #fff;
+        color: var(--secondary-color);
+        border: 1px solid var(--secondary-color);
+        padding: 15px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: background 0.2s;
+    }
+
+    .btn-cart:hover {
+        background-color: #f0f4ff;
+    }
+
+    .btn-wishlist {
+        background-color: #fff;
+        color: var(--secondary-color);
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    @@media (max-width: 992px) {
+        .product-container {
+            grid-template-columns: 1fr;
+        }
+        .thumb-column {
+            flex-direction: row;
+            order: 2;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .viewer-column {
+            order: 1;
+            min-height: 400px;
+        }
+        .info-column {
+            order: 3;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="breadcrumb-nav">
+        Home > Zapatos > @prodBrand > @prodName
+    </div>
+
+    <div class="product-container">
+        <!-- Vertical Thumbnails -->
+        <div class="thumb-column">
+            <div class="thumb-item active" onclick="switchTo360()">
+                <img src="@imgUrl" alt="360 View">
+            </div>
+            @if (Model != null && Model.ImagenesDetalle != null)
+            {
+                foreach (var img in Model.ImagenesDetalle)
+                {
+                    <div class="thumb-item" onclick="changeMainImage('@img.UrlImagen')">
+                        <img src="@img.UrlImagen" alt="Detail">
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- 360 Viewer / Main Image -->
+        <div class="viewer-column" id="mainDisplay">
+            <div id="360-viewer-container" class="cloudimage-360"
+                 data-folder="https://scaleflex.cloudimg.io/v7/demo/samples/360/adidas/"
+                 data-filename-x="{index}.jpg"
+                 data-amount-x="36"
+                 data-speed="10"
+                 data-drag-speed="10"
+                 data-auto-play="true"
+                 data-magnifier="2">
+            </div>
+            
+            <img id="static-image" src="@imgUrl" style="display:none; max-width:100%; max-height:100%; object-fit:contain;" />
+
+            <div class="viewer-actions">
+                <div class="action-btn" title="Fullscreen" onclick="toggleFullscreen()"><i class="bi bi-arrows-fullscreen"></i></div>
+                <div class="action-btn" title="Wishlist"><i class="bi bi-heart"></i></div>
+                <div class="action-btn" id="btn360" title="Toggle 360" onclick="switchTo360()" style="background: #000; color: #fff;"><i class="bi bi-arrow-repeat"></i></div>
+            </div>
+
+            <div class="instruction-overlay">
+                <i class="bi bi-hand-index-thumb"></i> Arrastra para girar 360°
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="info-column">
+            <a href="#" class="brand-link">@prodBrand <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i></a>
+            <h1 class="product-title">@prodName</h1>
+            
+            <div class="rating-line">
+                <div style="color: #f5a623;">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                </div>
+                <span style="color: var(--secondary-color); font-weight: 500;">99.8% positivos</span>
+                <span style="color: var(--text-muted);">| 212 vendido</span>
+            </div>
+
+            <div class="price-section">
+                <div class="selection-label">Precio:</div>
+                <div class="price-main">US $@prodPrice.ToString("N2")</div>
+                <div class="price-approx">Aproximadamente COP $@((prodPrice * 4000).ToString("N0"))</div>
+                <div style="margin-top: 10px; font-size: 0.85rem; color: #058527; font-weight: 600;">
+                    <i class="bi bi-tag-fill"></i> Envío y devoluciones gratis
+                </div>
+            </div>
+
+            <div class="selection-group">
+                <label class="selection-label">US Shoe Size:</label>
+                <select class="custom-select" id="sizeSelect" onchange="updateSelections()">
+                    <option value="">Seleccionar talla</option>
+                    @if (Model != null && Model.Variantes != null && Model.Variantes.Any())
+                    {
+                        var tallas = Model.Variantes.Where(v => v.TallaNombre != null).Select(v => v.TallaNombre).Distinct();
+                        foreach (var talla in tallas)
+                        {
+                            <option value="@talla">@talla</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="9.5">9.5</option>
+                        <option value="10">10</option>
+                        <option value="10.5">10.5</option>
+                    }
+                </select>
+                <div id="stockBadge" class="availability-badge">¡Solo quedan 2!</div>
+            </div>
+
+            <div class="selection-group">
+                <label class="selection-label">Color:</label>
+                <select class="custom-select" id="colorSelect" onchange="updateSelections()">
+                    <option value="">Seleccionar color</option>
+                    @if (Model != null && Model.Variantes != null && Model.Variantes.Any())
+                    {
+                        var colores = Model.Variantes.Where(v => v.ColorNombre != null).Select(v => v.ColorNombre).Distinct();
+                        foreach (var color in colores)
+                        {
+                            <option value="@color">@color</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="Core Black / Core White / Gum">Core Black / Core White / Gum</option>
+                    }
+                </select>
+            </div>
+
+            <div class="selection-group">
+                <label class="selection-label">Cantidad:</label>
+                <div class="quantity-control">
+                    <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                    <input type="text" id="qtyInput" class="qty-input" value="1" readonly>
+                    <button class="qty-btn" onclick="updateQty(1)">+</button>
+                </div>
+            </div>
+
+            <div class="action-group">
+                <a href="#" class="btn-buy" onclick="alert('Iniciando Checkout...')">¡Cómpralo ahora!</a>
+                
+                <form asp-controller="Cart" asp-action="Add" method="post" id="addToCartForm">
+                    <input type="hidden" name="productId" value="@Model?.IdProducto" />
+                    <input type="hidden" name="quantity" id="hiddenQty" value="1" />
+                    <input type="hidden" name="size" id="hiddenSize" value="" />
+                    <input type="hidden" name="color" id="hiddenColor" value="" />
+                    <button type="submit" class="btn-cart w-100">Agregar al carro de compras</button>
+                </form>
+
+                <button class="btn-wishlist">
+                    <i class="bi bi-heart"></i> Agregar a la Lista de favoritos
+                </button>
+            </div>
+
+            <div style="margin-top: 30px; padding: 15px; background: #fff8f8; border: 1px solid #ffebeb; border-radius: 8px; font-size: 0.85rem;">
+                <i class="bi bi-lightning-fill" style="color: #e53238;"></i> <strong>Este artículo es popular.</strong> Ya se han vendido 212 en las últimas 24 horas.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 360 Viewer Library -->
+<script src="https://cdn.scaleflex.it/plugins/js-cloudimage-360-view/3.5.0/js-cloudimage-360-view.min.js"></script>
+
+<script>
+    // Initialize 360 viewer
+    window.CI360.init();
+
+    function switchTo360() {
+        document.getElementById('360-viewer-container').style.display = 'block';
+        document.getElementById('static-image').style.display = 'none';
+        document.querySelector('.instruction-overlay').style.display = 'flex';
+        
+        // Mark active thumb
+        updateActiveThumb(0);
+    }
+
+    function changeMainImage(url) {
+        document.getElementById('360-viewer-container').style.display = 'none';
+        document.getElementById('static-image').style.display = 'block';
+        document.getElementById('static-image').src = url;
+        document.querySelector('.instruction-overlay').style.display = 'none';
+    }
+
+    function updateActiveThumb(index) {
+        document.querySelectorAll('.thumb-item').forEach((item, i) => {
+            if(i === index) item.classList.add('active');
+            else item.classList.remove('active');
+        });
+    }
+
+    function updateQty(change) {
+        let input = document.getElementById('qtyInput');
+        let current = parseInt(input.value);
+        let next = current + change;
+        if(next >= 1) {
+            input.value = next;
+            document.getElementById('hiddenQty').value = next;
+        }
+    }
+
+    function updateSelections() {
+        const size = document.getElementById('sizeSelect').value;
+        const color = document.getElementById('colorSelect').value;
+        const stockBadge = document.getElementById('stockBadge');
+        
+        document.getElementById('hiddenSize').value = size;
+        document.getElementById('hiddenColor').value = color;
+        
+        if (size === "9.5") {
+            stockBadge.style.display = 'block';
+            stockBadge.innerText = "¡Solo quedan 2 unidades!";
+        } else {
+            stockBadge.style.display = 'none';
+        }
+    }
+
+    function toggleFullscreen() {
+        const elem = document.getElementById('mainDisplay');
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                alert(`Error al intentar entrar en pantalla completa: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    // Intercept thumb clicks
+    document.querySelectorAll('.thumb-item').forEach((item, index) => {
+        item.addEventListener('click', () => updateActiveThumb(index));
+    });
+</script>

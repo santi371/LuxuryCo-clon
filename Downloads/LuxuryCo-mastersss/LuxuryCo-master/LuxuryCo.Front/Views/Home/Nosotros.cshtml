@@ -1,0 +1,99 @@
+@{
+    ViewData["Title"] = "Sobre Nosotros";
+}
+
+<style>
+    .about-header {
+        background-color: #000;
+        color: #fff;
+        text-align: center;
+        padding: 80px 20px;
+    }
+    .about-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.5rem;
+        letter-spacing: 3px;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+    }
+    .about-subtitle {
+        font-size: 1.1rem;
+        color: #ccc;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    .about-section {
+        padding: 80px 0;
+    }
+    .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+        align-items: center;
+    }
+    @@media (max-width: 992px) {
+        .about-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .about-img {
+        width: 100%;
+        border-radius: 4px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .content-heading {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        margin-bottom: 25px;
+        color: #000;
+    }
+    .content-text {
+        font-size: 1.05rem;
+        color: #555;
+        line-height: 1.8;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="about-header">
+    <h1 class="about-title">Nuestra Historia</h1>
+    <p class="about-subtitle">Más que ropa y accesorios. Somos el reflejo de un estilo de vida que persigue la exclusividad, la audacia y la excelencia.</p>
+</div>
+
+<div class="container about-section">
+    <div class="about-grid">
+        <div>
+            <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2670&auto=format&fit=crop" alt="Luxury Store" class="about-img" />
+        </div>
+        <div>
+            <h2 class="content-heading">El Origen del Lujo Urbano</h2>
+            <p class="content-text">
+                Nacimos con una visión clara: redefinir lo que significa vestir bien en el entorno urbano moderno. <strong>Luxury Accesories</strong> comenzó como un pequeño proyecto apasionado por prendas de alta calidad y diseños que rompieran el molde, dirigido a aquellos que no temen destacar.
+            </p>
+            <p class="content-text">
+                Hoy en día, somos una marca referente en streetwear premium, curando colecciones minuciosas que combinan estética imponente con un carácter inquebrantable. Cada hilo, cada corte, y cada diseño tiene un propósito.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container about-section" style="border-top: 1px solid #eaeaea;">
+    <div class="about-grid" style="direction: rtl;">
+        <div>
+            <img src="https://images.unsplash.com/photo-1558769132-cb1fac0840c2?q=80&w=2670&auto=format&fit=crop" alt="Craftsmanship" class="about-img" />
+        </div>
+        <div style="direction: ltr;">
+            <h2 class="content-heading">Nuestra Filosofía</h2>
+            <p class="content-text">
+                Creemos firmemente que nunca se debe dejar atrás el recato, el lujo y la exclusividad. Es por eso que en <strong>LuxuryCo</strong> seleccionamos meticulosamente nuestras materias primas, y colaboramos exclusivamente con marcas y diseñadores que comparten nuestro estándar de perfección.
+            </p>
+            <p class="content-text">
+                Nuestras piezas han vestido a artistas, celebridades y visionarios en todo el mundo. No solo vendemos ropa; ofrecemos una armadura contemporánea para aquellos que se atreven a dejar huella.
+            </p>
+        </div>
+    </div>
+</div>

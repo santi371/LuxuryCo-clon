@@ -1,0 +1,181 @@
+<div class="d-flex justify-content-between align-items-end mx-4 mb-4 pt-4 border-secondary" style="border-bottom: 1px solid #333; position: relative; z-index: 1000;">
+    <ul class="nav nav-tabs border-0 mb-0" style="margin-bottom: -1px;">
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Productos" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
+               asp-action="Productos" style="border-radius: 0; letter-spacing: 1px;">
+               <i class="fas fa-box-open me-2"></i>PRODUCTOS
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Marcas" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
+               asp-action="Marcas" style="border-radius: 0; letter-spacing: 1px;">
+               <i class="fas fa-tags me-2"></i>MARCAS
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Usuarios" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
+               asp-action="Usuarios" style="border-radius: 0; letter-spacing: 1px;">
+               <i class="fas fa-users me-2"></i>USUARIOS
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Categorias" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
+               asp-action="Categorias" style="border-radius: 0; letter-spacing: 1px;">
+               <i class="fas fa-layer-group me-2"></i>CATEGORÍAS
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Sedes" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
+               asp-action="Sedes" style="border-radius: 0; letter-spacing: 1px;">
+               <i class="fas fa-store-alt me-2"></i>SEDES
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Proveedores" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
+               asp-action="Proveedores" style="border-radius: 0; letter-spacing: 1px;">
+               <i class="fas fa-truck me-2"></i>PROVEEDORES
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Inventario" ? "active bg-dark text-white border-secondary border-bottom-0 fw-bold" : "text-secondary border-0")" 
+               asp-action="Inventario" style="border-radius: 0; letter-spacing: 1px;">
+               <i class="fas fa-warehouse me-2"></i>INVENTARIO
+            </a>
+        </li>
+    </ul>
+
+    <div class="d-flex pb-2 position-relative" style="width: 350px;">
+        <select id="globalSearchFilter" class="form-select text-white" style="background:#111; border: 1px solid #333; border-radius: 0; width: 110px; font-size: 0.8rem;">
+            <option value="all">Todo</option>
+            <option value="producto">Prod.</option>
+            <option value="usuario">User</option>
+            <option value="marca">Marca</option>
+        </select>
+        <div class="input-group">
+            <span class="input-group-text bg-transparent text-secondary border-end-0" style="border: 1px solid #333; border-radius: 0;">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" id="globalSearchInput" class="form-control text-white border-start-0" placeholder="Buscar..." autocomplete="off" style="background:#000; border: 1px solid #333; border-radius: 0; font-size: 0.85rem;" />
+        </div>
+        
+        <!-- Opciones desplegables de autocompletar  -->
+        <ul id="globalSearchResults" class="list-group position-absolute w-100 shadow-lg d-none" style="top: 100%; left: 0; background: #111; border: 1px solid #333; z-index: 9999; max-height: 300px; overflow-y: auto;">
+            <!-- Renderizado por JS -->
+        </ul>
+    </div>
+</div>
+
+<style>
+    .nav-tabs .nav-link.text-secondary:hover {
+        color: #fff !important;
+        border-bottom: 2px solid #555 !important;
+    }
+    
+    .search-suggestion-item {
+        background-color: #0d0d0d;
+        color: #ddd;
+        border-bottom: 1px solid #222;
+        cursor: pointer;
+        padding: 10px 15px;
+        transition: all 0.2s;
+    }
+    .search-suggestion-item:last-child {
+        border-bottom: none;
+    }
+    .search-suggestion-item:hover {
+        background-color: #222;
+        color: #f7d58a;
+    }
+
+    /* Animación mágica solicitada */
+    @@keyframes highlight-blink {
+        0% { background-color: transparent; }
+        15% { background-color: rgba(247, 213, 138, 0.4); transform: scale(1.01); }
+        50% { background-color: rgba(247, 213, 138, 0.1); transform: scale(1); }
+        80% { background-color: rgba(247, 213, 138, 0.3); }
+        100% { background-color: transparent; }
+    }
+    .highlight-animated {
+        animation: highlight-blink 4s ease-in-out;
+        border-left: 4px solid #f7d58a !important;
+    }
+</style>
+
+<!-- Lógica del buscador global en el cliente -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("globalSearchInput");
+    const searchFilter = document.getElementById("globalSearchFilter");
+    const searchResults = document.getElementById("globalSearchResults");
+    let typingTimer;
+    
+    // 1. Mostrar sugerencias predictivas
+    searchInput.addEventListener("input", function() {
+        clearTimeout(typingTimer);
+        const query = this.value.trim();
+        const filter = searchFilter.value;
+        
+        if (query.length < 2) {
+            searchResults.classList.add("d-none");
+            return;
+        }
+        
+        typingTimer = setTimeout(() => {
+            fetch(`/Admin/BuscarGlobal?q=${encodeURIComponent(query)}&filter=${filter}`)
+                .then(res => res.json())
+                .then(data => {
+                    searchResults.innerHTML = "";
+                    if (data.length === 0) {
+                        searchResults.innerHTML = `<li class="search-suggestion-item text-center text-muted">No se encontraron resultados</li>`;
+                    } else {
+                        data.forEach(item => {
+                            let icon = "fa-box";
+                            let action = "Productos";
+                            let entityName = "item";
+                            if(item.type === "usuario") { icon = "fa-user"; action = "Usuarios"; entityName = "user"; }
+                            if(item.type === "marca") { icon = "fa-tag"; action = "Marcas"; entityName = "marca"; }
+                            
+                            const li = document.createElement("li");
+                            li.className = "search-suggestion-item d-flex justify-content-between align-items-center";
+                            li.innerHTML = `
+                                <div><i class="fas ${icon} text-secondary me-2"></i> <span class="fw-bold">${item.name}</span></div>
+                                <small class="text-secondary">${item.detail}</small>
+                            `;
+                            // 2. Al hacer clic, redirigimos a la página con el flag highlight
+                            li.onclick = () => {
+                                window.location.href = `/Admin/${action}?highlight=${entityName}-${item.id}`;
+                            };
+                            searchResults.appendChild(li);
+                        });
+                    }
+                    searchResults.classList.remove("d-none");
+                });
+        }, 400); // Pequeño debounce para no saturar al tipear
+    });
+
+    // Ocultar al clickear afuera
+    document.addEventListener("click", function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target) && !searchFilter.contains(e.target)) {
+            searchResults.classList.add("d-none");
+        }
+    });
+
+    // 3. Ejecutar la Animación Mágica si llegamos desde un link "highlight"
+    const params = new URLSearchParams(window.location.search);
+    const highlightId = params.get("highlight");
+    
+    if (highlightId) {
+        // Le damos un respiro al DOM para que la tabla esté renderizada si usa Razor
+        setTimeout(() => {
+            const targetRow = document.getElementById(highlightId);
+            if (targetRow) {
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetRow.classList.add("highlight-animated");
+                
+                // Limpiar url para que no vuelva a parpadear al hacer refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }, 500);
+    }
+});
+</script>

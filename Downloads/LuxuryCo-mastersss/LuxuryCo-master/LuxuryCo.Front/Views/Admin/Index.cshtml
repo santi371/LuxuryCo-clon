@@ -1,0 +1,106 @@
+@{
+    ViewData["Title"] = "Dashboard de Administración";
+}
+
+<div class="container-fluid py-5" style="background-color: #000; min-height: 80vh; color: #fff;">
+    <div class="px-md-5 mb-5 text-center text-md-start">
+        <h1 class="display-4 fw-bold mb-3" style="font-family: 'Playfair Display', serif; letter-spacing: 2px;">
+            BIENVENIDO AL PANEL
+        </h1>
+        <p class="text-secondary fs-5" style="font-weight: 300;">
+            Centro de control y gestión de catálogo exclusivo.
+        </p>
+    </div>
+
+    <div class="row px-md-5 g-4">
+        <!-- Tarjeta Productos -->
+        <div class="col-md-4">
+            <a asp-action="Productos" class="text-decoration-none">
+                <div class="card h-100 admin-dashboard-card">
+                    <div class="card-body p-5 text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-box-open mb-4" style="font-size: 3.5rem; color: #d4af37;"></i>
+                        <h3 class="fw-bold mb-3" style="letter-spacing: 1px; color: #fff;">PRODUCTOS</h3>
+                        <p class="text-secondary mb-0">Gestiona el inventario, crea nuevos artículos y controla el stock.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta Marcas -->
+        <div class="col-md-4">
+            <a asp-action="Marcas" class="text-decoration-none">
+                <div class="card h-100 admin-dashboard-card">
+                    <div class="card-body p-5 text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-tags mb-4" style="font-size: 3.5rem; color: #d4af37;"></i>
+                        <h3 class="fw-bold mb-3" style="letter-spacing: 1px; color: #fff;">MARCAS</h3>
+                        <p class="text-secondary mb-0">Administra los proveedores y diseñadores asociados a la tienda.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta Usuarios -->
+        <div class="col-md-4">
+            <a asp-action="Usuarios" class="text-decoration-none">
+                <div class="card h-100 admin-dashboard-card">
+                    <div class="card-body p-5 text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-users mb-4" style="font-size: 3.5rem; color: #d4af37;"></i>
+                        <h3 class="fw-bold mb-3" style="letter-spacing: 1px; color: #fff;">USUARIOS</h3>
+                        <p class="text-secondary mb-0">Controla el acceso de clientes y otros administradores del sistema.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta Sedes -->
+        <div class="col-md-4">
+            <a asp-action="Sedes" class="text-decoration-none">
+                <div class="card h-100 admin-dashboard-card">
+                    <div class="card-body p-5 text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-store-alt mb-4" style="font-size: 3.5rem; color: #d4af37;"></i>
+                        <h3 class="fw-bold mb-3" style="letter-spacing: 1px; color: #fff;">SEDES</h3>
+                        <p class="text-secondary mb-0">Gestor de sucursales físicas, puntos de venta y lugares de recogida.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta Proveedores -->
+        <div class="col-md-4">
+            <a asp-action="Proveedores" class="text-decoration-none">
+                <div class="card h-100 admin-dashboard-card">
+                    <div class="card-body p-5 text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-truck mb-4" style="font-size: 3.5rem; color: #d4af37;"></i>
+                        <h3 class="fw-bold mb-3" style="letter-spacing: 1px; color: #fff;">PROVEEDORES</h3>
+                        <p class="text-secondary mb-0">Directorio de mayoristas y proveedores vinculados a tus productos.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard-card {
+        background-color: #111;
+        border: 1px solid #333;
+        border-radius: 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .admin-dashboard-card:hover {
+        background-color: #1a1a1a;
+        border-color: #d4af37;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    
+    .admin-dashboard-card i {
+        transition: transform 0.3s ease;
+    }
+    
+    .admin-dashboard-card:hover i {
+        transform: scale(1.1);
+    }
+</style>

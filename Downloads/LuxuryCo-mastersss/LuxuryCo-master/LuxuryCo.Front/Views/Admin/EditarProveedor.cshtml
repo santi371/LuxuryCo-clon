@@ -1,0 +1,66 @@
+@model LuxuryCo.Front.ViewModels.ProveedorCreateUpdateViewModel
+@{
+    ViewData["Title"] = "Editar Proveedor - LuxuryCo Admin";
+}
+
+<style>
+    .admin-form-container { max-width: 800px; margin: 3rem auto; background: #111; padding: 3rem; border: 1px solid #333; }
+    .admin-input { background: #000; border: 1px solid #333; color: #fff; padding: 12px 16px; border-radius: 0; font-size: 0.9rem; }
+    .admin-input:focus { background: #000; border-color: #f7d58a; color: #fff; box-shadow: 0 0 0 0.2rem rgba(247,213,138,0.25); }
+    .admin-label { font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
+    .btn-luxury { background: #fff; color: #000; border: 1px solid #fff; padding: 12px 30px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; border-radius: 0; transition: all 0.3s; }
+    .btn-luxury:hover { background: transparent; color: #fff; }
+    .btn-luxury-outline { background: transparent; color: #fff; border: 1px solid #555; padding: 12px 30px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; border-radius: 0; transition: all 0.3s; }
+    .btn-luxury-outline:hover { border-color: #fff; }
+</style>
+
+<div class="container-fluid py-5" style="background-color: #000; min-height: 100vh; color: #fff;">
+    <div class="admin-form-container">
+        <div class="text-center mb-5">
+            <h1 class="display-6 fw-bold mb-3" style="font-family: 'Playfair Display', serif; letter-spacing: 2px;">EDITAR PROVEEDOR</h1>
+            <p class="text-secondary">Modifica la información del proveedor.</p>
+        </div>
+
+        <form asp-action="EditarProveedor" asp-route-id="@Model.IdProveedor" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-4 text-center" style="font-size: 0.85rem;"></div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-12">
+                    <label asp-for="Nombre" class="form-label admin-label">Nombre del Proveedor *</label>
+                    <input asp-for="Nombre" class="form-control admin-input" />
+                    <span asp-validation-for="Nombre" class="text-danger" style="font-size: 0.75rem;"></span>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="Contacto" class="form-label admin-label">Persona de Contacto</label>
+                    <input asp-for="Contacto" class="form-control admin-input" />
+                    <span asp-validation-for="Contacto" class="text-danger" style="font-size: 0.75rem;"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Telefono" class="form-label admin-label">Teléfono</label>
+                    <input asp-for="Telefono" class="form-control admin-input" />
+                    <span asp-validation-for="Telefono" class="text-danger" style="font-size: 0.75rem;"></span>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-12">
+                    <label asp-for="Email" class="form-label admin-label">Email Corporativo</label>
+                    <input asp-for="Email" type="email" class="form-control admin-input" />
+                    <span asp-validation-for="Email" class="text-danger" style="font-size: 0.75rem;"></span>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-5 pt-4" style="border-top: 1px solid #333;">
+                <a asp-action="Proveedores" class="btn btn-luxury-outline">Cancelar</a>
+                <button type="submit" class="btn btn-luxury">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

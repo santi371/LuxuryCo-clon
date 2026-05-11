@@ -1,0 +1,41 @@
+/* Mascot Background and Branding */
+.mascot-bg {
+    position: fixed;
+    top: 50%;
+    left: -5%;
+    transform: translateY(-50%);
+    width: 40vw;
+    height: auto;
+    opacity: 0.15;
+    z-index: -1;
+    pointer-events: none;
+    filter: grayscale(30%) sepia(20%) brightness(0.8);
+    transition: opacity 0.5s ease;
+    animation: floatMascot 10s ease-in-out infinite;
+}
+
+@keyframes floatMascot {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    50% { transform: translateY(-52%) translateX(10px); }
+}
+
+/* On hover of main content, slightly highlight mascot */
+body:hover .mascot-bg {
+    opacity: 0.18;
+}
+
+/* Logo mascot styling */
+.brand-mascot {
+    height: 35px;
+    margin-right: 10px;
+    vertical-align: middle;
+    filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
+}
+
+@media (max-width: 768px) {
+    .mascot-bg {
+        width: 80vw;
+        left: -20%;
+        opacity: 0.08;
+    }
+}
