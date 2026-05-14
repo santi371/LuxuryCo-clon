@@ -39,51 +39,71 @@
         margin-bottom: 24px;
     }
 
-    /* ── Brand Tabs ── */
-    .brand-tabs {
+    /* ── Unified Filters Bar ── */
+    .unified-filters {
         display: flex;
-        justify-content: center;
-        gap: 6px;
         flex-wrap: wrap;
-        margin-bottom: 0;
-    }
-    .brand-tab {
-        padding: 8px 20px;
-        border: 1px solid #2a2a2a;
-        background: transparent;
-        color: #777;
-        font-size: 0.72rem;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: all 0.25s;
-        border-radius: 2px;
-    }
-    .brand-tab:hover { border-color: var(--gold); color: var(--gold); }
-    .brand-tab.active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
-
-    /* ── Filters Bar ── */
-    .filters-bar {
-        display: flex;
-        justify-content: space-between;
+        gap: 15px;
         align-items: center;
-        padding: 18px 20px;
+        justify-content: center;
+        padding: 20px 20px 30px;
         border-bottom: 1px solid #1a1a1a;
-        font-size: 0.78rem;
-        color: var(--text-muted);
-        letter-spacing: 1px;
+        background: var(--dark);
     }
-    .sort-dropdown {
-        background: var(--dark2);
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #111;
         border: 1px solid #2a2a2a;
-        color: #aaa;
-        padding: 6px 12px;
-        font-size: 0.75rem;
-        outline: none;
-        border-radius: 2px;
-        cursor: pointer;
+        border-radius: 4px;
+        padding: 5px 15px;
+        transition: border-color 0.3s ease;
     }
-    .sort-dropdown:focus { border-color: var(--gold); }
+    .filter-group:focus-within {
+        border-color: var(--gold);
+    }
+    .filter-group i {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    .filter-input {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 0.8rem;
+        padding: 8px 0;
+        outline: none;
+    }
+    .filter-input::placeholder {
+        color: #666;
+    }
+    .filter-select {
+        background: transparent;
+        border: none;
+        color: #aaa;
+        font-size: 0.8rem;
+        padding: 8px 0;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        padding-right: 15px;
+    }
+    .filter-select:focus { color: #fff; }
+    .filter-select option {
+        background: #111;
+        color: #fff;
+    }
+    .product-counter {
+        font-size: 0.8rem;
+        color: var(--gold);
+        letter-spacing: 1px;
+        margin-left: auto;
+    }
+    @@media (max-width: 768px) {
+        .unified-filters { flex-direction: column; align-items: stretch; }
+        .product-counter { margin-left: 0; text-align: center; }
+    }
 
     /* ── Product Grid ── */
     .product-grid {
@@ -292,28 +312,45 @@
 
 <div class="cat-wrapper">
     <!-- Header -->
-    <div class="cat-header">
-        <h1 class="cat-title">@categoryName</h1>
-
-        <!-- Brand Tabs -->
-        <div class="brand-tabs">
-            <button class="brand-tab active" onclick="filterBrand('all', this)">TODAS</button>
-            <button class="brand-tab" onclick="filterBrand('Y/OUT', this)">Y/OUT</button>
-            <button class="brand-tab" onclick="filterBrand('MONEY MAKERS', this)">MONEY MAKERS</button>
-            <button class="brand-tab" onclick="filterBrand('BLOW UP', this)">BLOW UP</button>
-            <button class="brand-tab" onclick="filterBrand('CULTUREWISE', this)">CULTUREWISE</button>
-        </div>
+    <div class="cat-header pb-3 border-0">
+        <h1 class="cat-title mb-0">@categoryName</h1>
     </div>
 
-    <!-- Filters Bar -->
-    <div class="filters-bar">
-        <span id="productCount">@(Model?.Count() ?? 0) productos</span>
-        <select class="sort-dropdown" id="sortSelect" onchange="sortProducts()">
-            <option value="default">Ordenar: Recientes primero</option>
-            <option value="price-asc">Precio: menor a mayor</option>
-            <option value="price-desc">Precio: mayor a menor</option>
-            <option value="name-asc">Nombre: A → Z</option>
-        </select>
+    <!-- Unified Filters Bar -->
+    <div class="unified-filters">
+        <!-- Búsqueda -->
+        <div class="filter-group">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" class="filter-input" placeholder="Buscar producto..." onkeyup="applyFilters()">
+        </div>
+
+        <!-- Filtro Marca -->
+        <div class="filter-group">
+            <i class="fas fa-tag"></i>
+            <select class="filter-select" id="brandSelect" onchange="applyFilters()">
+                <option value="all">Todas las Marcas</option>
+                <option value="Y/OUT">Y/OUT</option>
+                <option value="MONEY MAKERS">MONEY MAKERS</option>
+                <option value="BLOW UP">BLOW UP</option>
+                <option value="CULTUREWISE">CULTUREWISE</option>
+            </select>
+        </div>
+
+        <!-- Filtro Ordenar -->
+        <div class="filter-group">
+            <i class="fas fa-sort-amount-down"></i>
+            <select class="filter-select" id="sortSelect" onchange="sortProducts()">
+                <option value="default">Recientes primero</option>
+                <option value="price-asc">Precio: Menor a Mayor</option>
+                <option value="price-desc">Precio: Mayor a Menor</option>
+                <option value="name-asc">Nombre: A → Z</option>
+            </select>
+        </div>
+
+        <!-- Contador -->
+        <div class="product-counter" id="productCount">
+            @(Model?.Count() ?? 0) productos
+        </div>
     </div>
 
     @if (TempData["CartMessage"] != null)
@@ -421,20 +458,28 @@
 <script>
     let currentProductId = null;
 
-    // ─── Brand Filter ───────────────────────────────────────────────
-    function filterBrand(brand, btn) {
-        document.querySelectorAll('.brand-tab').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
+    // ─── Filters & Search ───────────────────────────────────────────
+    function applyFilters() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const brand = document.getElementById('brandSelect').value;
         const cards = document.querySelectorAll('.product-card');
         let visible = 0;
+
         cards.forEach(card => {
             const cardBrand = card.dataset.brand?.toUpperCase() ?? '';
-            const show = brand === 'all' || cardBrand.includes(brand.toUpperCase());
+            const cardName = card.dataset.name?.toLowerCase() ?? '';
+            
+            const matchBrand = brand === 'all' || cardBrand.includes(brand.toUpperCase());
+            const matchSearch = cardName.includes(searchText);
+
+            const show = matchBrand && matchSearch;
             card.style.display = show ? '' : 'none';
             if (show) visible++;
         });
         document.getElementById('productCount').textContent = visible + ' productos';
+        
+        // Mantener el orden seleccionado después de filtrar
+        sortProducts();
     }
 
     // ─── Sort ───────────────────────────────────────────────────────

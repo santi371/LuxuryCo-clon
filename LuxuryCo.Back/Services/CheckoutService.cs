@@ -126,6 +126,16 @@ public class CheckoutService : ICheckoutService
             pedido.id_estado_pedido = 2; 
             _logger.LogInformation($"[PAYMENT APPROVED] Transacción {paymentResult.TransactionId} exitosa para la orden {pedido.id_pedido}.");
 
+            // --- Generar Factura de la compra ---
+            var factura = new Factura
+            {
+                id_pedido = pedido.id_pedido,
+                fecha_factura = DateTime.UtcNow,
+                total = totalOrder,
+                id_metodo_pago = 1 // 1 = Tarjeta de Crédito por defecto
+            };
+            _context.Facturas.Add(factura);
+
             _context.DetallesCarrito.RemoveRange(carrito.Detalles);
 
             await _context.SaveChangesAsync();

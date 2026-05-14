@@ -129,27 +129,30 @@
             const text = userInput.value.trim();
             if (!text) return;
 
-            // Add user message
             appendMessage(text, 'user');
             userInput.value = '';
             
-            // Show typing indicator
             aiTyping.classList.remove('d-none');
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                // Call our Frontend proxy which forwards to the Backend
                 const response = await fetch('/Admin/SendAiMessage', {
                     method: 'POST',
+                    credentials: 'include',  // Asegura que las cookies de sesión se envíen
                     headers: { 
                         'Content-Type': 'application/json'
                     },
-                    // The Authorization header is globally injected by your site.js interceptor if it exists,
-                    // but we will also ensure the browser handles auth cookies automatically.
                     body: JSON.stringify({ message: text })
                 });
 
-                const data = await response.json();
+                let data;
+                const rawText = await response.text(); // Primero leer como texto
+                try {
+                    data = JSON.parse(rawText); // Luego intentar parsear como JSON
+                } catch {
+                    appendMessage("⚠️ Error de formato: La IA no respondió en formato correcto. ¿Está el Backend corriendo?", 'ai');
+                    return;
+                }
                 
                 if (response.ok) {
                     appendMessage(data.reply, 'ai');

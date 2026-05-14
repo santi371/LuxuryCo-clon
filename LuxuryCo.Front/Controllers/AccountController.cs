@@ -67,7 +67,10 @@ namespace LuxuryCo.Front.Controllers
                         { 
                             HttpOnly = true, 
                             Expires = DateTimeOffset.UtcNow.AddDays(7),
-                            Secure = true
+                            // SameSite=Lax permite que la cookie viaje en peticiones del mismo sitio
+                            // Secure=false en desarrollo para evitar que el navegador rechace la cookie en localhost
+                            Secure = Request.IsHttps,
+                            SameSite = SameSiteMode.Lax
                         });
                     }
 
