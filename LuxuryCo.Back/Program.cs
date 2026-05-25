@@ -122,7 +122,7 @@ _ = Task.Run(async () =>
                 await context.SaveChangesAsync();
             }
 
-            // Asegurar roles adicionales para el ERP
+            // Asegurar roles adicionales para el ERP (uno por uno para evitar conflictos de clave)
             var rolesAdicionales = new[] { "VENDEDOR", "SUPERVISOR", "CLIENTE" };
             foreach (var rolStr in rolesAdicionales)
             {
@@ -130,23 +130,26 @@ _ = Task.Run(async () =>
                 if (!existeRol)
                 {
                     context.Roles.Add(new LuxuryCo.Database.Models.Rol { nombre_rol = rolStr, descripcion = $"Permisos de {rolStr}" });
+                    await context.SaveChangesAsync();
                 }
             }
-            await context.SaveChangesAsync();
+            
+            // Re-leer adminRole por si cambió el tracking
+            adminRole = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(context.Roles, r => r.nombre_rol == "ADMIN");
 
-            // Asegurar que existe el usuario admin@luxuryco.com
-            var adminEmail = "admin@luxuryco.com";
+            // Asegurar que existe el usuario torrescebaloszx@gmail.com
+            var adminEmail = "torrescebaloszx@gmail.com";
             var adminExists = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(context.Usuarios, u => u.email == adminEmail);
             
             if (!adminExists)
             {
                 // 1. Registrar en Supabase
-                var session = await supabase.Auth.SignUp(adminEmail, "Admin123!");
+                var session = await supabase.Auth.SignUp(adminEmail, "santizxdw123456789");
                 
                 // 2. Insertar en nuestra base de datos local
                 var adminUser = new LuxuryCo.Database.Models.Usuario
                 {
-                    nombre = "Super",
+                    nombre = "Santi",
                     apellido = "Admin",
                     email = adminEmail,
                     password_hash = "SUPABASE_MANAGED",
@@ -158,7 +161,35 @@ _ = Task.Run(async () =>
                 };
                 context.Usuarios.Add(adminUser);
                 await context.SaveChangesAsync();
-                Console.WriteLine("Usuario Administrador ('admin@luxuryco.com' / 'Admin123!') creado con éxito.");
+                Console.WriteLine("Usuario Administrador ('torrescebaloszx@gmail.com') creado con éxito.");
+            }
+
+            // Asegurar que existe el usuario torresceballoscarlossantiago0@gmail.com
+            var clienteRole = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(context.Roles, r => r.nombre_rol == "CLIENTE");
+            var userEmail = "torresceballoscarlossantiago0@gmail.com";
+            var userExists = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(context.Usuarios, u => u.email == userEmail);
+            
+            if (!userExists && clienteRole != null)
+            {
+                // 1. Registrar en Supabase
+                var session = await supabase.Auth.SignUp(userEmail, "santiagozxdw1234567890");
+                
+                // 2. Insertar en nuestra base de datos local
+                var regularUser = new LuxuryCo.Database.Models.Usuario
+                {
+                    nombre = "Santiago",
+                    apellido = "Cliente",
+                    email = userEmail,
+                    password_hash = "SUPABASE_MANAGED",
+                    telefono = "0000000000",
+                    id_rol = clienteRole.id_rol,
+                    activo = true,
+                    fecha_registro = DateTime.UtcNow,
+                    two_factor_enabled = false
+                };
+                context.Usuarios.Add(regularUser);
+                await context.SaveChangesAsync();
+                Console.WriteLine("Usuario Cliente ('torresceballoscarlossantiago0@gmail.com') creado con éxito.");
             }
         }
         catch (Exception ex)

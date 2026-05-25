@@ -26,9 +26,23 @@ public class AuthService : IAuthService
     {
         try
         {
-            // 1. Autenticar con Supabase
+                        // 1. Intentar autenticación con Supabase
             var session = await _supabase.Auth.SignIn(loginDto.Email, loginDto.Password);
-            
+            // Si no existe en Supabase Auth, crear usuario (solo si el registro no requiere confirmación)
+            if (session == null || session.User == null)
+            {
+                var signUpSession = await _supabase.Auth.SignUp(loginDto.Email, loginDto.Password);
+                if (signUpSession != null && signUpSession.User != null)
+                {
+                    // Usuario creado y listo, intentar login de nuevo
+                    session = await _supabase.Auth.SignIn(loginDto.Email, loginDto.Password);
+                }
+                else
+                {
+                    // SignUp sin usuario implica que se requiere confirmación de email
+                    throw new Exception("Credenciales inválidas o cuenta no confirmada. Revise su correo para confirmar.");
+                }
+            }
             if (session == null || session.User == null)
                 throw new Exception("Credenciales inválidas proporcionadas por Supabase.");
 
