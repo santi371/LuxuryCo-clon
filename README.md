@@ -59,5 +59,9 @@ La solución está dividida en tres capas principales:
 
 Las contribuciones son bienvenidas. Si deseas mejorar el proyecto, por favor abre un issue para discutir los cambios o envía un Pull Request directamente.
 
+## 🌿 Manejo de Ramas
+
+Este proyecto sigue una estrategia de ramas donde las nuevas características y mejoras se desarrollan en ramas específicas (ej. `feature/mejora-santiago`) antes de integrarse a la rama principal.
+
 ---
 *Desarrollado para ofrecer la mejor experiencia en compras de lujo impulsadas por Inteligencia Artificial.*
