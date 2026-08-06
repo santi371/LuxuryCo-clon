@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: luxuryco-backend
+    env: docker
+    dockerfilePath: ./Dockerfile.Back
+    plan: free
+
+  - type: web
+    name: luxuryco-frontend
+    env: docker
+    dockerfilePath: ./Dockerfile.Front
+    plan: free
