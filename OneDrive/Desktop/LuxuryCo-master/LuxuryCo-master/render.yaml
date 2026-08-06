@@ -2,11 +2,13 @@ services:
   - type: web
     name: luxuryco-backend
     env: docker
+    rootDir: OneDrive/Desktop/LuxuryCo-master/LuxuryCo-master
     dockerfilePath: ./Dockerfile.Back
     plan: free
 
   - type: web
     name: luxuryco-frontend
     env: docker
+    rootDir: OneDrive/Desktop/LuxuryCo-master/LuxuryCo-master
     dockerfilePath: ./Dockerfile.Front
     plan: free
