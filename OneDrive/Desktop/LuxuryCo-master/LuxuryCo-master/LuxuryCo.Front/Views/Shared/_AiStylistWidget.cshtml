@@ -1,0 +1,1613 @@
+<div id="ai-stylist-widget" class="floating-chat-container">
+    <!-- Botón Flotante -->
+    <button id="ai-stylist-toggle" class="btn-floating-chat shadow-lg">
+        <i class="fas fa-gem me-1"></i> Asesor de Estilo
+    </button>
+
+    <!-- Ventana del Chat -->
+    <div id="ai-stylist-box" class="chat-window shadow-lg d-none">
+        <div class="chat-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-gem text-gold me-2"></i>
+                <span class="fw-bold">LuxuryCo Stylist</span>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <button class="btn btn-sm text-gold px-2" id="btn-tryon-toggle" title="Probador Virtual">
+                    <i class="fas fa-tshirt"></i>
+                </button>
+                <button class="btn btn-sm text-white px-2" onclick="clearStylistChat()" title="Limpiar">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="btn btn-sm text-white px-2" id="ai-stylist-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Probador Virtual -->
+        <div id="tryon-panel" class="tryon-panel d-none">
+            <div class="tryon-panel-header">
+                <i class="fas fa-tshirt text-gold me-2"></i>
+                <span>Probador Virtual con IA</span>
+                <button class="btn btn-sm text-white ms-auto" id="btn-tryon-close" title="Cerrar">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+
+            <!-- Upload de foto -->
+            <div class="tryon-upload-area" id="tryon-drop-zone">
+                <input type="file" id="tryon-photo-input" accept="image/jpeg,image/png,image/webp" style="display:none">
+                <div id="tryon-upload-placeholder" onclick="document.getElementById('tryon-photo-input').click()">
+                    <i class="fas fa-camera tryon-camera-icon"></i>
+                    <p class="mb-1">Sube tu foto</p>
+                    <small>JPG, PNG o WEBP</small>
+                </div>
+                <div id="tryon-preview-container" class="d-none">
+                    <img id="tryon-photo-preview" class="tryon-preview-img" alt="Tu foto">
+                    <button class="btn-tryon-remove" onclick="removeTryOnPhoto()" title="Quitar foto">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Prenda a probar -->
+            <div class="tryon-fields">
+                <label class="tryon-label">Categor&iacute;a de la prenda</label>
+                <select id="tryon-category" class="tryon-select">
+                    <option value="tops">&#128084; Camisa / Top / Chaqueta</option>
+                    <option value="bottoms">&#128096; Pantalon / Falda / Shorts</option>
+                    <option value="one-pieces">&#128163; Vestido / Overall</option>
+                </select>
+
+                <label class="tryon-label mt-2">Prenda a probarte</label>
+                <input type="text" id="tryon-garment-desc" class="tryon-input"
+                       placeholder="Ej: camisa negra de lino manga larga...">
+                <small class="tryon-hint">Puedes escribirlo o seleccionar un producto del chat</small>
+            </div>
+
+            <!-- Boton de accion -->
+            <button id="btn-tryon-run" class="btn-tryon-run" onclick="runVirtualTryOn()">
+                <i class="fas fa-magic me-2"></i>Probarme esta prenda
+            </button>
+
+            <!-- Estado de carga -->
+            <div id="tryon-loading" class="tryon-loading d-none">
+                <div class="tryon-spinner"></div>
+                <p class="tryon-loading-text">Analizando tu foto y ajustando la prenda...<br><small>Esto puede tomar 15-40 segundos</small></p>
+            </div>
+        </div>
+        <!-- /Panel Probador Virtual -->
+
+        <div class="chat-body" id="stylist-messages">
+            <!-- El saludo se genera dinamicamente en JS segun la pagina -->
+        </div>
+        
+        <div id="stylist-typing" class="typing-indicator d-none p-2 mb-2">
+            <div class="typing-line"></div>
+        </div>
+         <div class="chat-footer">
+             <!-- Input de archivo oculto (hidden) -->
+             <input type="file" id="stylist-file-upload" accept="image/*" style="display:none !important;">
+
+             <!-- Fila 1: Acciones rápidas — Grid robusto de 2 columnas -->
+             <div class="chat-footer-actions">
+                 <button type="button" id="btn-upload-image" class="chat-action-btn" title="Sube un archivo de imagen">
+                     <i class="fas fa-image"></i>
+                     <span>Subir Archivo</span>
+                 </button>
+                 <button type="button" id="btn-voice-mic" class="chat-action-btn" title="Consulta usando tu micrófono">
+                     <i class="fas fa-microphone" id="mic-icon"></i>
+                     <span>Chat de Voz</span>
+                 </button>
+             </div>
+
+             <!-- Fila 2: Input de texto + enviar -->
+             <form id="stylist-form" class="chat-footer-main">
+                 <input type="text" id="stylist-input" class="form-control" placeholder="Escribe tu consulta aquí..." autocomplete="off">
+                 <button type="submit" class="btn btn-send" title="Enviar"><i class="fas fa-paper-plane"></i></button>
+             </form>
+         </div>
+    </div>
+</div>
+<script src="~/js/voice_assistant.js"></script>
+
+<style>
+    :root {
+        --chat-primary: #000000;
+        --chat-secondary: #1a1a1a;
+        --chat-accent: #C9A84C;
+        --chat-text: #e0e0e0;
+    }
+
+    .floating-chat-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .btn-floating-chat {
+        background-color: var(--chat-primary);
+        color: var(--chat-accent);
+        border: 1px solid var(--chat-accent);
+        border-radius: 30px;
+        padding: 12px 24px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(201, 168, 76, 0.3) !important;
+    }
+
+    .btn-floating-chat:hover {
+        background-color: var(--chat-accent);
+        color: var(--chat-primary);
+        transform: translateY(-2px);
+    }
+
+    .chat-window {
+        width: 560px;
+        height: 520px;
+        max-height: 80vh;
+        background-color: rgba(5, 5, 5, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(201, 168, 76, 0.25);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(255,255,255,0.05) !important;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: absolute;
+        bottom: 60px;
+        right: 0;
+        transform-origin: bottom right;
+        animation: scaleIn 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    @@keyframes scaleIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .chat-header {
+        background-color: rgba(15, 15, 15, 0.85);
+        padding: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        color: white;
+    }
+
+    .text-gold {
+        color: var(--chat-accent);
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background-color: transparent;
+    }
+
+    /* Scrollbar */
+    .chat-body::-webkit-scrollbar { width: 4px; }
+    .chat-body::-webkit-scrollbar-track { background: transparent; }
+    .chat-body::-webkit-scrollbar-thumb { background-color: #333; border-radius: 10px; }
+
+    .msg-bubble {
+        max-width: 85%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    .ai-bubble {
+        background-color: var(--chat-secondary);
+        color: var(--chat-text);
+        border-left: 2px solid var(--chat-accent);
+        margin-right: auto;
+        border-bottom-left-radius: 0;
+    }
+
+    .user-bubble {
+        background-color: #222;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 0;
+    }
+
+    /* Línea de Carga (Typing Indicator) */
+    .typing-line {
+        width: 40px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--chat-accent), transparent);
+        animation: pulseLine 1.5s ease-in-out infinite;
+        margin-left: 10px;
+    }
+    @@keyframes pulseLine {
+        0% { opacity: 0.3; transform: scaleX(0.5); }
+        50% { opacity: 1; transform: scaleX(1); box-shadow: 0 0 10px rgba(201,168,76,0.6); }
+        100% { opacity: 0.3; transform: scaleX(0.5); }
+    }
+
+    .chat-footer {
+        padding: 10px 14px 14px;
+        background-color: rgba(8, 8, 8, 0.97);
+        border-top: 1px solid rgba(201,168,76,0.18);
+        flex-shrink: 0;
+    }
+
+    /* Fila de acciones rápidas: Grid exacto de 2 columnas para máxima estabilidad */
+    .chat-footer-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+        width: 100%;
+    }
+
+    .chat-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: rgba(201,168,76,0.12);
+        color: #C9A84C;
+        border: 1px solid rgba(201,168,76,0.4);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        box-sizing: border-box;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: all 0.2s ease;
+    }
+    .chat-action-btn i {
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .chat-action-btn span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .chat-action-btn:hover {
+        background: rgba(201,168,76,0.25);
+        transform: translateY(-1px);
+    }
+    .chat-action-btn.active,
+    .chat-action-btn.mic-listening {
+        background: rgba(201,168,76,0.30);
+        border-color: #C9A84C;
+    }
+    .chat-action-btn.mic-listening i {
+        color: #ff4444;
+        animation: micPulse 1s ease-in-out infinite;
+    }
+    @@keyframes micPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    /* Fila de input: input de texto + botón enviar */
+    .chat-footer-main {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chat-footer input {
+        background-color: #111;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    .chat-footer input:focus {
+        background-color: #000;
+        color: white;
+        border-color: var(--chat-accent);
+        box-shadow: none;
+    }
+
+    .btn-send {
+        background-color: transparent;
+        color: var(--chat-accent);
+        border: none;
+        padding: 0 15px;
+        font-size: 1.2rem;
+    }
+
+    .btn-send:hover {
+        color: white;
+    }
+
+    /* Typing Animation */
+    .typing-indicator {
+        padding: 10px 15px;
+        background-color: var(--chat-secondary);
+        display: inline-block;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        margin-left: 15px;
+    }
+    .dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: var(--chat-accent);
+        border-radius: 50%;
+        margin: 0 2px;
+        animation: bounce 1.3s linear infinite;
+    }
+    .dot:nth-child(2) { animation-delay: -1.1s; }
+    .dot:nth-child(3) { animation-delay: -0.9s; }
+
+    @@keyframes bounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-4px); }
+    }
+    /* ── Product Cards ── */
+    .product-cards-row {
+        display: flex;
+        gap: 8px;
+        padding: 4px 0 8px;
+        flex-wrap: wrap;
+    }
+
+    .product-card-mini {
+        display: flex;
+        flex-direction: column;
+        width: 140px;
+        background: #111;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        overflow: hidden;
+        text-decoration: none;
+        transition: border-color 0.2s, transform 0.2s;
+        flex-shrink: 0;
+    }
+
+    .product-card-mini:hover {
+        border-color: var(--chat-accent);
+        transform: translateY(-2px);
+    }
+
+    .product-card-mini img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        background: #1a1a1a;
+    }
+
+    .pc-body {
+        padding: 8px;
+    }
+
+    .pc-name {
+        color: #e0e0e0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin: 0 0 2px;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pc-section {
+        color: #666;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 4px;
+    }
+
+    .pc-price {
+        color: var(--chat-accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+
+    .pc-btn {
+        display: block;
+        font-size: 0.65rem;
+        color: var(--chat-accent);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        border-top: 1px solid #222;
+        padding-top: 5px;
+    }
+    .image-skeleton-loader {
+        width: 100%;
+        height: 180px;
+        background-color: #1a1a1a;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed var(--chat-accent);
+    }
+    .skeleton-glow {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.15), transparent);
+        animation: glowSweep 1.5s infinite;
+    }
+    @@keyframes glowSweep {
+        to { left: 200%; }
+    }
+    .skeleton-text {
+        font-size: 0.85rem;
+        color: #888;
+        font-weight: 500;
+        z-index: 2;
+    }
+    .btn-outline-gold {
+        border: 1px solid var(--chat-accent);
+        color: var(--chat-accent);
+        background: transparent;
+        transition: all 0.2s ease;
+    }
+    .btn-outline-gold:hover {
+        background: var(--chat-accent);
+        color: #000;
+    }
+    .btn-action-gen {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    .image-container-secure {
+        position: relative;
+        width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 8px;
+        border: 1px solid rgba(201, 168, 76, 0.3);
+        background: #0d0d0d;
+    }
+    .generated-luxury-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    .generated-luxury-img:hover {
+        transform: scale(1.03);
+    }
+    .image-loading-placeholder {
+        padding: 40px 10px;
+        text-align: center;
+        color: #888;
+        font-size: 0.85rem;
+    }
+    .image-meta-info {
+        font-size: 0.72rem;
+        color: #aaa;
+        margin-top: 4px;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    .image-actions-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+    }
+
+    /* ── Probador Virtual Panel ── */
+    .tryon-panel {
+        background: rgba(8,8,8,0.97);
+        border-bottom: 1px solid rgba(201,168,76,0.2);
+        padding: 12px;
+        animation: slideDown 0.25s ease;
+        max-height: 420px;
+        overflow-y: auto;
+    }
+    @@keyframes slideDown {
+        from { opacity:0; transform:translateY(-10px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .tryon-panel-header {
+        display: flex;
+        align-items: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #e0e0e0;
+        margin-bottom: 10px;
+    }
+    .tryon-upload-area {
+        border: 1.5px dashed rgba(201,168,76,0.4);
+        border-radius: 8px;
+        background: #0d0d0d;
+        min-height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: border-color 0.2s;
+        margin-bottom: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    .tryon-upload-area:hover, .tryon-upload-area.drag-over {
+        border-color: var(--chat-accent);
+        background: rgba(201,168,76,0.05);
+    }
+    #tryon-upload-placeholder {
+        text-align: center;
+        color: #666;
+        font-size: 0.8rem;
+        padding: 12px;
+        cursor: pointer;
+        width: 100%;
+    }
+    .tryon-camera-icon {
+        font-size: 1.8rem;
+        color: rgba(201,168,76,0.5);
+        display: block;
+        margin-bottom: 6px;
+    }
+    .tryon-preview-img {
+        width: 100%;
+        max-height: 140px;
+        object-fit: cover;
+        display: block;
+    }
+    #tryon-preview-container {
+        position: relative;
+        width: 100%;
+    }
+    .btn-tryon-remove {
+        position: absolute;
+        top: 4px; right: 4px;
+        background: rgba(0,0,0,0.7);
+        border: 1px solid #555;
+        color: #fff;
+        border-radius: 50%;
+        width: 22px; height: 22px;
+        font-size: 0.65rem;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .tryon-fields { margin-bottom: 10px; }
+    .tryon-label {
+        display: block;
+        font-size: 0.72rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .tryon-select, .tryon-input {
+        width: 100%;
+        background: #111;
+        border: 1px solid #333;
+        color: #e0e0e0;
+        border-radius: 6px;
+        padding: 7px 10px;
+        font-size: 0.82rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .tryon-select:focus, .tryon-input:focus { border-color: var(--chat-accent); }
+    .tryon-hint {
+        font-size: 0.68rem;
+        color: #555;
+        display: block;
+        margin-top: 3px;
+    }
+    .btn-tryon-run {
+        width: 100%;
+        background: linear-gradient(135deg, #C9A84C, #a07830);
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-tryon-run:hover { opacity:0.9; transform:translateY(-1px); }
+    .btn-tryon-run:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+    .tryon-loading {
+        text-align: center;
+        padding: 14px 0 6px;
+    }
+    .tryon-spinner {
+        width: 36px; height: 36px;
+        border: 3px solid #222;
+        border-top-color: var(--chat-accent);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 8px;
+    }
+    @@keyframes spin { to { transform:rotate(360deg); } }
+    .tryon-loading-text { font-size:0.78rem; color:#888; margin:0; }
+    .tryon-result-badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        padding: 2px 7px;
+        border-radius: 10px;
+        margin-top: 5px;
+        font-weight: 600;
+    }
+    .badge-real    { background: rgba(0,200,100,0.15); color:#00c864; border:1px solid rgba(0,200,100,0.3); }
+    .badge-est     { background: rgba(201,168,76,0.15); color:#C9A84C; border:1px solid rgba(201,168,76,0.3); }
+
+    /* ── Conflicting Upload Button CSS Removed to keep pill-button styles ── */
+    .upload-preview-bubble {
+        background: rgba(201,168,76,0.07);
+        border: 1px dashed rgba(201,168,76,0.4);
+        border-radius: 10px;
+        padding: 8px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .upload-preview-bubble img {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid rgba(201,168,76,0.3);
+    }
+    .upload-preview-bubble .upload-info { flex: 1; font-size: 0.75rem; color:#bbb; }
+    .upload-preview-bubble .btn-clear-upload {
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 0.85rem;
+        padding: 2px 6px;
+    }
+    .upload-preview-bubble .btn-clear-upload:hover { color:#ff6b6b; }
+
+    /* ── Mobile UX Responsiveness ── */
+    @@media (max-width: 768px) {
+        .chat-window {
+            width: 100vw;
+            height: 100dvh;
+            height: calc(100dvh - env(safe-area-inset-bottom));
+            bottom: 0;
+            right: 0;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 10000;
+            position: fixed;
+            margin: 0;
+            box-shadow: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .chat-header {
+            border-radius: 0;
+            padding-top: env(safe-area-inset-top);
+        }
+        .chat-body {
+            flex: 1 1 auto;
+            border-radius: 0;
+        }
+        .chat-footer {
+            border-radius: 0;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        }
+        .floating-chat-container {
+            bottom: calc(20px + env(safe-area-inset-bottom));
+            right: 15px;
+            z-index: 9999;
+        }
+        .btn-floating-chat {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* ── Modal Seguro HTTPS para Registro Zero-Password ── */
+    .secure-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); z-index: 10001;
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+    .secure-modal-box {
+        background: #111; border: 1px solid var(--chat-accent);
+        border-radius: 12px; padding: 25px; width: 90%; max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .secure-modal-box input {
+        width: 100%; padding: 10px; margin-bottom: 15px;
+        background: #222; border: 1px solid #444; color: white; border-radius: 6px;
+    }
+    .secure-modal-box button { width: 100%; }
+</style>
+
+<script>
+    // Variables globales
+    const chatToggle = document.getElementById('ai-stylist-toggle');
+    const chatBox = document.getElementById('ai-stylist-box');
+    const chatClose = document.getElementById('ai-stylist-close');
+    const stylistForm = document.getElementById('stylist-form');
+    const stylistInput = document.getElementById('stylist-input');
+    const stylistMessages = document.getElementById('stylist-messages');
+    const stylistTyping = document.getElementById('stylist-typing');
+
+    // Generar o recuperar Session ID para la Base de Datos
+    let currentSessionId = localStorage.getItem('luxuryco_ai_session_id');
+    if (!currentSessionId) {
+        currentSessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('luxuryco_ai_session_id', currentSessionId);
+    }
+
+    // ── ID del usuario autenticado (0 = visitante anónimo) ─────────────────────
+    const _luxuryUserId = (function() {
+        const meta = document.querySelector('meta[name="luxuryco-user-id"]');
+        return meta ? parseInt(meta.content, 10) || 0 : 0;
+    })();
+
+    // ── Historial de conversación (persistente en localStorage) ────────────────
+    const HISTORY_KEY = 'luxuryco_chat_history_' + currentSessionId;
+    const MAX_HISTORY_TURNS = 20; 
+
+    // ── Lógica del Probador Virtual ────────────────────────────────────────────
+    let tryonBase64 = null;
+    let tryonMimeType = null;
+    let currentTryOnProductId = null;
+
+    const btnTryonToggle = document.getElementById('btn-tryon-toggle');
+    const btnTryonClose = document.getElementById('btn-tryon-close');
+    const panelTryon = document.getElementById('tryon-panel');
+    const inputPhoto = document.getElementById('tryon-photo-input');
+    const dropZone = document.getElementById('tryon-drop-zone');
+    const previewContainer = document.getElementById('tryon-preview-container');
+    const placeholder = document.getElementById('tryon-upload-placeholder');
+    const imgPreview = document.getElementById('tryon-photo-preview');
+    const btnRun = document.getElementById('btn-tryon-run');
+    const loadingTryon = document.getElementById('tryon-loading');
+    const categorySelect = document.getElementById('tryon-category');
+    const garmentDescInput = document.getElementById('tryon-garment-desc');
+
+    function toggleTryOnPanel() {
+        if(panelTryon.classList.contains('d-none')) {
+            panelTryon.classList.remove('d-none');
+            // Autocompletar con el producto del contexto actual si existe
+            if(lastShownProductId && !garmentDescInput.value) {
+                garmentDescInput.value = "producto seleccionado";
+                currentTryOnProductId = lastShownProductId;
+            }
+        } else {
+            panelTryon.classList.add('d-none');
+        }
+    }
+    btnTryonToggle.addEventListener('click', toggleTryOnPanel);
+    btnTryonClose.addEventListener('click', () => panelTryon.classList.add('d-none'));
+
+    // Upload & Preview
+    inputPhoto.addEventListener('change', function(e) {
+        if(this.files && this.files[0]) handleTryOnPhoto(this.files[0]);
+    });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if(e.dataTransfer.files && e.dataTransfer.files[0]) handleTryOnPhoto(e.dataTransfer.files[0]);
+    });
+
+    function handleTryOnPhoto(file) {
+        if(!file.type.startsWith('image/')) {
+            alert('Por favor selecciona una imagen (JPG/PNG).');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => {
+            imgPreview.src = e.target.result;
+            placeholder.classList.add('d-none');
+            previewContainer.classList.remove('d-none');
+            
+            // Extraer base64
+            const result = e.target.result;
+            const parts = result.split(',');
+            tryonMimeType = parts[0].match(/:(.*?);/)[1];
+            tryonBase64 = parts[1];
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeTryOnPhoto() {
+        inputPhoto.value = '';
+        tryonBase64 = null;
+        tryonMimeType = null;
+        imgPreview.src = '';
+        previewContainer.classList.add('d-none');
+        placeholder.classList.remove('d-none');
+    }
+
+    // Run AI
+    async function runVirtualTryOn() {
+        if(!tryonBase64) {
+            alert('¡Sube tu foto primero!');
+            return;
+        }
+        
+        btnRun.disabled = true;
+        btnRun.classList.add('d-none');
+        loadingTryon.classList.remove('d-none');
+
+        const garment = garmentDescInput.value || "ropa de moda";
+        const cat = categorySelect.value;
+        const pid = currentTryOnProductId;
+
+        // Añadir burbuja de contexto en el chat
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble ai-bubble mb-2';
+        bubble.innerHTML = `<i class="fas fa-tshirt text-gold me-2"></i><strong>Procesando tu prueba virtual...</strong><br><small>Categoria: ${cat} | Prenda: ${garment}</small>`;
+        stylistMessages.appendChild(bubble);
+        scrollToBottom();
+
+        try {
+            const resp = await fetch('/Home/VirtualTryOn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    UserPhotoBase64: tryonBase64,
+                    UserPhotoMimeType: tryonMimeType,
+                    GarmentDescription: garment,
+                    ProductId: pid,
+                    Category: cat
+                })
+            });
+
+            if(!resp.ok) throw new Error('Error en el servidor de IA');
+            const data = await resp.json();
+
+            if(data.status === 'Failed' || !data.imageUrl) {
+                throw new Error(data.errorMessage || 'Fallo en la generacion');
+            }
+
+            // Mostrar resultado en chat
+            bubble.remove(); // Quitar la burbuja temporal
+            const resultBubble = document.createElement('div');
+            resultBubble.className = 'msg-bubble ai-bubble mb-2';
+            
+            const badgeClass = data.isEstimation ? 'badge-est' : 'badge-real';
+            const badgeIcon = data.isEstimation ? 'fa-magic' : 'fa-check-circle';
+
+            resultBubble.innerHTML = `
+                <div class="mb-2"><strong>¡Aquí tienes!</strong> Así luciría la prenda:</div>
+                <div class="image-container-secure mb-2">
+                    <img src="${data.imageUrl}" class="img-fluid rounded generated-luxury-img">
+                </div>
+                <div style="font-size:0.7rem; color:#aaa; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:6px; padding:6px 8px; margin-bottom: 8px;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Aviso:</strong> El agente puede cometer errores. Esta imagen es solo un estimado; si desea más realismo y precisión, puede adquirir el plan Premium de Luxury.
+                </div>
+                <span class="tryon-result-badge ${badgeClass}"><i class="fas ${badgeIcon} me-1"></i> ${data.provider}</span>
+                <div class="image-actions-row mt-2">
+                    <a href="${data.imageUrl}" target="_blank" download="LuxuryCo-TryOn.png" class="btn btn-outline-gold btn-action-gen">
+                        <i class="fas fa-download me-1"></i> Descargar
+                    </a>
+                </div>
+            `;
+            stylistMessages.appendChild(resultBubble);
+            panelTryon.classList.add('d-none'); // Cerrar panel
+        } catch (error) {
+            bubble.innerHTML = `<i class="fas fa-exclamation-triangle text-danger me-2"></i> ${error.message}`;
+        }
+
+        btnRun.disabled = false;
+        btnRun.classList.remove('d-none');
+        loadingTryon.classList.add('d-none');
+        scrollToBottom();
+    }
+    // ───────────────────────────────────────────────────────────────────────────
+
+
+    function loadHistory() {
+        try {
+            const raw = localStorage.getItem(HISTORY_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch { return []; }
+    }
+
+    function saveToHistory(role, content) {
+        const history = loadHistory();
+        history.push({ role, content });
+        if (history.length > MAX_HISTORY_TURNS) history.splice(0, history.length - MAX_HISTORY_TURNS);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    // ── ID del último producto mostrado (para contexto de "agrégalo") ─────────
+    let lastShownProductId = null;
+
+    // ── Estado del chat ────────────────────────────────────────────
+    let chatGreetingShown = false;
+
+    function buildSmartGreeting() {
+        const path = window.location.pathname.toLowerCase();
+        const isProductDetail = path.includes('/catalogo/detalle');
+        const isCatalog = path.includes('/catalogo') && !isProductDetail;
+        const isCart = path.includes('/carrito');
+        const isCheckout = path.includes('/checkout');
+
+        if (isProductDetail) {
+            const productTitle = document.querySelector('h1')?.innerText?.trim() || 'este producto';
+            return `¡Hola! 👋 Veo que estás mirando <strong>${productTitle}</strong>.<br><br>¿Tienes alguna duda sobre <strong>tallas, envíos o devoluciones</strong>? Estoy aquí para ayudarte. 😊`;
+        }
+        if (isCatalog) {
+            return '¡Hola! Bienvenido a nuestro catálogo. 🛍️<br>¿Buscas algo para una ocasión especial o quieres explorar las últimas tendencias de LuxuryCo?';
+        }
+        if (isCart) {
+            return '¡Hola! Veo que tienes artículos en tu carrito. 🛒<br>¿Puedo ayudarte con algo antes de finalizar tu compra? También puedo sugerirte looks completos.';
+        }
+        if (isCheckout) {
+            return '¡Ya casi es tuyo! 🎉<br>¿Tienes alguna duda sobre el proceso de pago o los tiempos de entrega?';
+        }
+        return '¡Hola! Soy tu asesor de estilo personal de LuxuryCo. ✨<br>¿Buscas algo para una ocasión especial o quieres explorar nuevas tendencias?';
+    }
+
+    // ── Restaurar historial visual al abrir ──────────────────────────────────
+    function restoreHistoryToUI() {
+        const history = loadHistory();
+        if (history.length === 0) return;
+        history.forEach(entry => {
+            addMessageToUI(entry.content, entry.role === 'user' ? 'user' : 'ai', false);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Toggle: abrir/cerrar con saludo inmediato en la primera apertura
+        chatToggle.addEventListener('click', () => {
+            chatBox.classList.toggle('d-none');
+            if (!chatBox.classList.contains('d-none')) {
+                if (!chatGreetingShown) {
+                    chatGreetingShown = true;
+                    const history = loadHistory();
+                    if (history.length > 0) {
+                        restoreHistoryToUI();
+                    } else {
+                        addMessageToUI(buildSmartGreeting(), 'ai', false);
+                    }
+                }
+                stylistInput.focus();
+                scrollToBottom();
+            }
+        });
+
+        chatClose.addEventListener('click', () => {
+            chatBox.classList.add('d-none');
+        });
+
+        // Enviar mensaje
+        stylistForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = stylistInput.value.trim();
+            if (!text) return;
+
+            // Limpiar input y agregar mensaje de usuario
+            stylistInput.value = '';
+            addMessageToUI(text, 'user', true);
+            
+            // Mostrar "escribiendo..."
+            stylistTyping.classList.remove('d-none');
+            scrollToBottom();
+
+            try {
+                const currentHistory = loadHistory();
+                const response = await fetch('/Home/SendStylistMessage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: text,
+                        sessionId: currentSessionId,
+                        userId: _luxuryUserId || null,
+                        history: currentHistory,
+                        lastProductId: lastShownProductId
+                    })
+                });
+
+                let data;
+                const rawText = await response.text();
+                try { data = JSON.parse(rawText); }
+                catch {
+                    addMessageToUI("⚠️ Error de formato en la respuesta del servidor.", 'ai', false);
+                    return;
+                }
+
+                if (response.ok) {
+                    // Solo guardar en historial si NO es un trigger de imagen
+                    if (!data.reply.includes('[[IMAGE_GEN_TRIGGER:')) {
+                        saveToHistory('assistant', data.reply);
+                    }
+                    addMessageToUI(data.reply, 'ai', false);
+                    
+                    // --- Text-to-Speech (TTS) ---
+                    if (window.VoiceAssistant) {
+                        const plainText = data.reply.replace(/<[^>]*>?/gm, '').replace(/\*/g, '');
+                        window.VoiceAssistant.speak(plainText);
+                    }
+                    
+                    // Render product cards if any
+                    if (data.cards && data.cards.length > 0) {
+                        renderProductCards(data.cards);
+                        lastShownProductId = data.cards[0].id;
+                    }
+                } else {
+                    addMessageToUI("⚠️ " + (data.message || "Error al conectar con el servidor."), 'ai', false);
+                }
+            } catch (error) {
+                addMessageToUI("⚠️ Error de conexión.", 'ai', false);
+            } finally {
+                stylistTyping.classList.add('d-none');
+                scrollToBottom();
+            }
+        });
+    });
+
+    function isAllowedImageDomain(url) {
+        try {
+            if (!url) return false;
+            const parsed = new URL(url, window.location.origin);
+            const hostname = parsed.hostname.toLowerCase();
+            if (hostname === window.location.hostname) return true;
+            if (hostname.endsWith('.supabase.co')) return true;
+            if (hostname === 'pollinations.ai' || hostname.endsWith('.pollinations.ai')) return true;
+            if (hostname === 'api.stability.ai') return true;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+            return false;
+        } catch {
+            return false;
+        }
+    }
+
+    function addMessageToUI(text, sender, saveHistory = true) {
+        // Interceptar gatillo de generación de imágenes (NO guardar en historial)
+        if (sender === 'ai' && text.includes('[[IMAGE_GEN_TRIGGER:')) {
+            const match = text.match(/\[\[IMAGE_GEN_TRIGGER:(.*?)\]\]/);
+            if (match) {
+                const prompt = match[1];
+                // Mostrar mensaje amigable de confirmación ANTES del skeleton
+                const confirmDiv = document.createElement('div');
+                confirmDiv.className = 'msg-bubble ai-bubble mb-2';
+                confirmDiv.innerHTML = `<i class="fas fa-magic text-gold me-1"></i> ¡Perfecto! Generando tu diseño para: <strong>${prompt.substring(0, 60)}${prompt.length > 60 ? '...' : ''}</strong>`;
+                stylistMessages.appendChild(confirmDiv);
+                scrollToBottom();
+                triggerImageGeneration(prompt);
+                return; // NO guardar el trigger en historial
+            }
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = `msg-bubble ${sender === 'user' ? 'user-bubble ms-auto' : 'ai-bubble'} mb-3`;
+        
+        let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedText = formattedText.replace(/\n/g, '<br>');
+        formattedText = formattedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:var(--chat-accent)">$1</a>');
+        
+        bubble.innerHTML = formattedText;
+        stylistMessages.appendChild(bubble);
+
+        // Solo guardar en historial si el flag está activado y NO es trigger de imagen
+        if (saveHistory && !text.includes('[[IMAGE_GEN_TRIGGER:')) {
+            saveToHistory(sender === 'user' ? 'user' : 'assistant', text);
+        }
+    }
+
+    async function triggerImageGeneration(prompt, seed = null, targetContainerId = null) {
+        let container;
+        let skeleton;
+        let infoDiv;
+        let actionsDiv;
+
+        if (targetContainerId) {
+            container = document.getElementById(targetContainerId);
+            container.innerHTML = '';
+        } else {
+            const bubble = document.createElement('div');
+            bubble.className = `msg-bubble ai-bubble mb-3`;
+            bubble.id = 'img-gen-' + Math.random().toString(36).substr(2, 9);
+            stylistMessages.appendChild(bubble);
+            container = bubble;
+        }
+
+        // Crear la estructura de carga y skeleton
+        const header = document.createElement('div');
+        header.className = 'fw-bold mb-2';
+        header.innerHTML = `<i class="fas fa-magic text-gold me-2"></i>Generador de Diseños IA`;
+        container.appendChild(header);
+
+        skeleton = document.createElement('div');
+        skeleton.className = 'image-skeleton-loader mb-2';
+        skeleton.innerHTML = `
+            <div class="skeleton-glow"></div>
+            <div class="skeleton-text"><i class="fas fa-circle-notch fa-spin me-2"></i>Optimizando y generando...</div>
+        `;
+        container.appendChild(skeleton);
+
+        infoDiv = document.createElement('div');
+        infoDiv.className = 'image-meta-info';
+        infoDiv.innerText = `Prompt: "${prompt}"`;
+        container.appendChild(infoDiv);
+
+        scrollToBottom();
+
+        try {
+            const response = await fetch('/Home/GenerateImageProxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    userId: _luxuryUserId || null,
+                    seed: seed || null
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en la generación (${response.status})`);
+            }
+
+            const data = await response.json();
+            if (data.status === 'Failed' || !data.imageUrl) {
+                throw new Error(data.message || 'Error al generar la imagen.');
+            }
+
+            // Validar dominio por seguridad
+            if (!isAllowedImageDomain(data.imageUrl)) {
+                throw new Error('URL de imagen no permitida por seguridad.');
+            }
+
+            // Quitar skeleton y colocar la imagen segura
+            skeleton.remove();
+
+            const imgSec = document.createElement('div');
+            imgSec.className = 'image-container-secure';
+            imgSec.innerHTML = `
+                <img src="${data.imageUrl}" class="img-fluid rounded generated-luxury-img" alt="${data.prompt}" style="display:none;" onload="this.style.display='block'; this.nextElementSibling?.remove();" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; this.nextElementSibling?.remove();">
+                <div class="image-loading-placeholder"><i class="fas fa-spinner fa-spin me-2"></i>Cargando diseño...</div>
+            `;
+            container.insertBefore(imgSec, infoDiv);
+
+            infoDiv.innerHTML = `
+                <strong>Diseño Optimizado:</strong> ${data.prompt}<br>
+                <strong>Seed:</strong> ${data.seed || 'Aleatorio'}<br>
+                <div class="mt-2 p-2 rounded" style="background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.3); font-size:0.7rem; color:#aaa; line-height:1.2;">
+                    <i class="fas fa-exclamation-triangle text-gold me-1"></i> <strong>Disclaimer IA:</strong> Las imágenes generadas son conceptuales y aproximadas. La IA puede cometer errores visuales y no garantiza la exactitud de colores ni detalles reales de la prenda. Para la prenda exacta en fotos reales, consulta los modelos de estudio.
+                </div>
+            `;
+
+            // Agregar botones de acción
+            actionsDiv = document.createElement('div');
+            actionsDiv.className = 'image-actions-row';
+            
+            // Botón de variación (cambiar seed o regenerar)
+            const varBtn = document.createElement('button');
+            varBtn.className = 'btn btn-outline-gold btn-action-gen';
+            varBtn.innerHTML = '<i class="fas fa-redo me-1"></i> Variación';
+            varBtn.onclick = () => {
+                const nextSeed = Math.floor(Math.random() * 99999999);
+                triggerImageGeneration(prompt, nextSeed, container.id);
+            };
+            actionsDiv.appendChild(varBtn);
+
+            // Botón de Upscale
+            const upscaleBtn = document.createElement('button');
+            upscaleBtn.className = 'btn btn-outline-gold btn-action-gen';
+            upscaleBtn.innerHTML = '<i class="fas fa-expand me-1"></i> Alta Calidad (Upscale)';
+            upscaleBtn.onclick = () => {
+                alert('Mejorando la resolución de la imagen...');
+                // Aquí se podría integrar un endpoint de upscale si es necesario
+            };
+            actionsDiv.appendChild(upscaleBtn);
+
+            container.appendChild(actionsDiv);
+
+        } catch (error) {
+            if (skeleton) skeleton.remove();
+            
+            const errDiv = document.createElement('div');
+            errDiv.className = 'alert alert-danger p-2 text-center';
+            errDiv.style.fontSize = '0.8rem';
+            errDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> ${error.message || 'Error al generar la imagen.'}`;
+            container.insertBefore(errDiv, infoDiv);
+
+            actionsDiv = document.createElement('div');
+            actionsDiv.className = 'image-actions-row';
+
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'btn btn-outline-gold btn-action-gen';
+            retryBtn.innerHTML = '<i class="fas fa-sync me-1"></i> Reintentar';
+            retryBtn.onclick = () => {
+                triggerImageGeneration(prompt, seed, container.id);
+            };
+            actionsDiv.appendChild(retryBtn);
+            container.appendChild(actionsDiv);
+        }
+
+        scrollToBottom();
+    }
+
+    function renderProductCards(cards) {
+        const container = document.createElement('div');
+        container.className = 'product-cards-row';
+
+        cards.forEach(card => {
+            const formatted = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(card.precio);
+            const cardEl = document.createElement('a');
+            cardEl.href = card.url;
+            cardEl.className = 'product-card-mini';
+            cardEl.innerHTML = `
+                <img src="${card.imagen}" alt="${card.nombre}" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';">
+                <div class="pc-body">
+                    <p class="pc-name">${card.nombre}</p>
+                    <p class="pc-section">${card.seccion}</p>
+                    <p class="pc-price">${formatted}</p>
+                    <span class="pc-btn">Ver producto →</span>
+                </div>
+            `;
+            container.appendChild(cardEl);
+        });
+
+        stylistMessages.appendChild(container);
+    }
+
+    function clearStylistChat() {
+        currentSessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('luxuryco_ai_session_id', currentSessionId);
+        localStorage.removeItem(HISTORY_KEY);
+        lastShownProductId = null;
+        chatGreetingShown = false;
+        stylistMessages.innerHTML = '';
+        addMessageToUI(buildSmartGreeting(), 'ai', false);
+        chatGreetingShown = true;
+    }
+
+    function scrollToBottom() {
+        stylistMessages.scrollTop = stylistMessages.scrollHeight;
+    }
+
+    // ── Auto-Open & Proactive Trigger (Paso 2.4) ──────────────────────────────
+    (function initProactiveTrigger() {
+        const isClosed = sessionStorage.getItem('luxuryco_chat_closed');
+        const hasOpened = sessionStorage.getItem('luxuryco_chat_opened');
+
+        // Función para abrir suavemente el chat
+        function autoOpenChat() {
+            if (!chatBox.classList.contains('d-none')) return;
+            sessionStorage.setItem('luxuryco_chat_opened', '1');
+            chatBox.classList.remove('d-none');
+            
+            if (!chatGreetingShown) {
+                chatGreetingShown = true;
+                addMessageToUI(buildSmartGreeting(), 'ai');
+            }
+            scrollToBottom();
+        }
+
+        // 1. Si el usuario nunca lo ha cerrado, abrir automáticamente al entrar a la página
+        //    Ponemos un pequeño retraso (1.5s) para que la página cargue primero y se vea la animación
+        if (!isClosed && !hasOpened) {
+            setTimeout(autoOpenChat, 1500);
+        }
+
+        // 2. Si el usuario lo cierra, recordar su preferencia en esta sesión
+        chatClose.addEventListener('click', () => {
+            sessionStorage.setItem('luxuryco_chat_closed', '1');
+        });
+
+        // 3. Mantener el gatillo de 45 segundos solo si está en un producto y lo había cerrado
+        const isProductPage = window.location.pathname.toLowerCase().includes('/catalogo/detalle');
+        if (isProductPage && !sessionStorage.getItem('luxuryco_proactive_fired')) {
+            const proactiveTimer = setTimeout(() => {
+                sessionStorage.setItem('luxuryco_proactive_fired', '1');
+                autoOpenChat();
+            }, 45000);
+
+            chatToggle.addEventListener('click', () => clearTimeout(proactiveTimer), { once: true });
+        }
+        // 4. Voice Assistant Integration
+        const btnVoiceMic = document.getElementById('btn-voice-mic');
+        const micIcon = document.getElementById('mic-icon');
+        
+        if (btnVoiceMic) {
+            btnVoiceMic.addEventListener('click', () => {
+                if (window.VoiceAssistant && window.VoiceAssistant.state === "LISTENING") {
+                    window.VoiceAssistant.stopListening();
+                    btnVoiceMic.classList.remove('mic-listening', 'active');
+                    micIcon.className = "fas fa-microphone";
+                } else if (window.VoiceAssistant) {
+                    window.VoiceAssistant.startListening(
+                        (text) => {
+                            stylistInput.value = text;
+                            stylistForm.dispatchEvent(new Event('submit'));
+                            btnVoiceMic.classList.remove('mic-listening', 'active');
+                            micIcon.className = "fas fa-microphone";
+                        },
+                        (state) => {
+                            if (state === "LISTENING") {
+                                micIcon.className = "fas fa-microphone";
+                                btnVoiceMic.classList.add('mic-listening');
+                                btnVoiceMic.classList.remove('active');
+                            } else if (state === "PROCESSING") {
+                                micIcon.className = "fas fa-circle-notch fa-spin";
+                                btnVoiceMic.classList.remove('mic-listening');
+                                btnVoiceMic.classList.add('active');
+                            } else {
+                                micIcon.className = "fas fa-microphone";
+                                btnVoiceMic.classList.remove('mic-listening', 'active');
+                            }
+                        }
+                    );
+                } else {
+                    // VoiceAssistant no disponible — mostrar mensaje amigable
+                    addMessageToUI('⚠️ El asistente de voz no está disponible en este momento. Escribe tu consulta directamente.', 'ai', false);
+                }
+            });
+        }
+    })();
+
+    // ── Lógica de Subida de Imagen para Probador Virtual ──
+    let uploadedImageBase64 = null;
+    let uploadedImageMime = null;
+
+    const btnUpload = document.getElementById('btn-upload-image');
+    const fileUploadInput = document.getElementById('stylist-file-upload');
+
+    if (btnUpload && fileUploadInput) {
+        btnUpload.addEventListener('click', () => {
+            fileUploadInput.click();
+        });
+
+        fileUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validar tipo y tamaño (máx 5MB)
+            if (!file.type.startsWith('image/')) {
+                addMessageToUI('⚠️ Solo puedes subir imágenes (JPG, PNG, WEBP).', 'ai', false);
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                addMessageToUI('⚠️ La imagen es muy grande. Máximo 5 MB.', 'ai', false);
+                return;
+            }
+
+            uploadedImageMime = file.type;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const fullDataUrl = ev.target.result;
+                // Extraer solo el base64 sin el prefijo data:image/...;base64,
+                uploadedImageBase64 = fullDataUrl.split(',')[1];
+
+                // Mostrar preview en el chat
+                showImagePreviewInChat(fullDataUrl, file.name);
+            };
+            reader.readAsDataURL(file);
+            // Limpiar el input para permitir re-selección del mismo archivo
+            fileUploadInput.value = '';
+        });
+    }
+
+    function showImagePreviewInChat(dataUrl, fileName) {
+        // Remover preview anterior si existe
+        const existing = document.getElementById('upload-preview-bubble');
+        if (existing) existing.remove();
+
+        const previewBubble = document.createElement('div');
+        previewBubble.id = 'upload-preview-bubble';
+        previewBubble.className = 'upload-preview-bubble mx-2 mb-1';
+        previewBubble.innerHTML = `
+            <img src="${dataUrl}" alt="Tu foto">
+            <div class="upload-info">
+                <div><strong style="color:var(--chat-accent);font-size:0.75rem;"><i class="fas fa-camera me-1"></i>Foto lista para probador virtual</strong></div>
+                <div style="color:#888;">${fileName}</div>
+                <div style="color:#aaa; font-size:0.7rem;">Ahora dime qué prenda quieres probar, ej: "ponme una camisa azul"</div>
+            </div>
+            <button class="btn-clear-upload" onclick="clearUploadedImage()" title="Quitar foto">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        // Insertar antes del chat-footer (el form)
+        const footer = document.getElementById('stylist-form');
+        footer.parentNode.insertBefore(previewBubble, footer);
+
+        // Cambiar color del botón de cámara para indicar que hay foto
+        if (btnUpload) {
+            btnUpload.style.background = 'rgba(201,168,76,0.4)';
+            btnUpload.title = 'Cambiar foto';
+        }
+
+        scrollToBottom();
+    }
+
+    function clearUploadedImage() {
+        uploadedImageBase64 = null;
+        uploadedImageMime = null;
+        const preview = document.getElementById('upload-preview-bubble');
+        if (preview) preview.remove();
+        if (btnUpload) {
+            btnUpload.style.background = '';
+            btnUpload.title = 'Subir foto para Probador Virtual';
+        }
+    }
+
+    // Sobrescribir el submit del formulario para incluir la imagen si está disponible
+    const stylistFormOverride = document.getElementById('stylist-form');
+    const originalSubmitHandler = stylistFormOverride.onsubmit;
+
+    stylistFormOverride.addEventListener('submit', async (e) => {
+        // Si hay imagen subida, usar flujo de Virtual Try-On directo
+        if (uploadedImageBase64) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            const garmentText = stylistInput.value.trim() || 'una prenda de estilo elegante';
+            stylistInput.value = '';
+
+            // Capturar referencias ANTES de limpiar
+            const capturedBase64 = uploadedImageBase64;
+            const capturedMime = uploadedImageMime || 'image/jpeg';
+
+            // Mostrar mensaje de usuario con indicador de foto
+            const userBubble = document.createElement('div');
+            userBubble.className = 'msg-bubble user-bubble ms-auto mb-3';
+            userBubble.innerHTML = `<i class="fas fa-camera me-2 text-gold"></i>${garmentText}`;
+            stylistMessages.appendChild(userBubble);
+
+            // Quitar preview
+            clearUploadedImage();
+
+            // Mostrar typing
+            stylistTyping.classList.remove('d-none');
+            scrollToBottom();
+
+            try {
+                const tryonResponse = await fetch('/Home/VirtualTryOn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userPhotoBase64: capturedBase64,
+                        userPhotoMimeType: capturedMime,
+                        garmentDescription: garmentText,
+                        garmentImageUrl: null,
+                        productId: lastShownProductId || null,
+                        category: 'tops',
+                        seed: null
+                    })
+                });
+
+                const rawText = await tryonResponse.text();
+                let data;
+                try { data = JSON.parse(rawText); } catch { data = { errorMessage: rawText }; }
+
+                stylistTyping.classList.add('d-none');
+
+                if (tryonResponse.ok && data.imageUrl) {
+                    const resultBubble = document.createElement('div');
+                    resultBubble.className = 'msg-bubble ai-bubble mb-3';
+                    resultBubble.innerHTML = `
+                        <div class="fw-bold mb-2"><i class="fas fa-tshirt text-gold me-2"></i>Probador Virtual IA</div>
+                        <img src="${data.imageUrl}" alt="Resultado probador virtual" class="generated-luxury-img rounded mb-2" style="max-width:100%;">
+                        <div style="font-size:0.7rem; color:#aaa; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:6px; padding:6px 8px;">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Aviso:</strong> El agente puede cometer errores. Esta imagen es solo un estimado; si desea más realismo y precisión, puede adquirir el plan Premium de Luxury.
+                        </div>
+                    `;
+                    stylistMessages.appendChild(resultBubble);
+                } else {
+                    addMessageToUI('⚠️ No pude procesar el probador virtual. Intenta de nuevo con otra foto o prenda.', 'ai', false);
+                }
+            } catch (err) {
+                stylistTyping.classList.add('d-none');
+                addMessageToUI('⚠️ Error de conexión con el probador virtual.', 'ai', false);
+            }
+
+            scrollToBottom();
+        }
+        // Si no hay imagen, el flujo normal de texto continúa (otros listeners del submit)
+    }, true); // capture=true para ejecutarse antes
+
+    // ── Lógica Modal Seguro de Registro (Zero-Password) ──
+
+    let currentSecureToken = null;
+
+    function openSecureRegistrationModal(token) {
+        currentSecureToken = token;
+        const modalHtml = `
+            <div id="secure-registration-modal" class="secure-modal-overlay">
+                <div class="secure-modal-box">
+                    <h5 class="text-gold mb-3"><i class="fas fa-lock me-2"></i>Registro Seguro</h5>
+                    <p style="font-size:0.8rem; color:#aaa;">Crea una contraseña segura para finalizar tu registro. La IA no tiene acceso a esta información.</p>
+                    <form id="secure-reg-form" onsubmit="submitSecureRegistration(event)">
+                        <label style="font-size:0.75rem; color:#888;">Contraseña Segura</label>
+                        <input type="password" id="secure-reg-pwd" required minlength="8" placeholder="Min. 8 caracteres, números y símbolos">
+                        <label style="font-size:0.75rem; color:#888;">Confirmar Contraseña</label>
+                        <input type="password" id="secure-reg-pwd2" required minlength="8" placeholder="Confirma tu contraseña">
+                        
+                        <div id="secure-reg-error" class="text-danger mb-2 d-none" style="font-size:0.75rem;"></div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="closeSecureRegistrationModal()">Cancelar</button>
+                            <button type="submit" class="btn btn-primary btn-sm flex-fill" id="secure-reg-btn">Registrarme Seguramente</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        chatBox.classList.add('d-none'); // Ocultar chat por seguridad
+    }
+
+    function closeSecureRegistrationModal() {
+        const modal = document.getElementById('secure-registration-modal');
+        if (modal) modal.remove();
+        currentSecureToken = null;
+        chatBox.classList.remove('d-none');
+    }
+
+    async function submitSecureRegistration(e) {
+        e.preventDefault();
+        const pwd = document.getElementById('secure-reg-pwd').value;
+        const pwd2 = document.getElementById('secure-reg-pwd2').value;
+        const errorDiv = document.getElementById('secure-reg-error');
+        const btn = document.getElementById('secure-reg-btn');
+
+        if (pwd !== pwd2) {
+            errorDiv.innerText = "Las contraseñas no coinciden.";
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+
+        errorDiv.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+
+        try {
+            const response = await fetch('/Account/CompleteSecureRegistration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Token: currentSecureToken, Password: pwd })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || "Error de validación.");
+            }
+
+            // Exito
+            closeSecureRegistrationModal();
+            const textToAppend = "<i class='fas fa-check-circle text-success me-2'></i> <strong>¡Registro Exitoso!</strong> Bienvenido a LuxuryCo. Ya estás conectado de forma segura.";
+            
+            const bubble = document.createElement('div');
+            bubble.className = "msg-bubble ai-bubble";
+            bubble.innerHTML = textToAppend;
+            stylistMessages.appendChild(bubble);
+            scrollToBottom();
+
+            setTimeout(() => window.location.reload(), 2000); 
+            
+        } catch (error) {
+            errorDiv.innerText = error.message;
+            errorDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerText = 'Registrarme Seguramente';
+        }
+    }
+</script>
+

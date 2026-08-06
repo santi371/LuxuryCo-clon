@@ -1,0 +1,387 @@
+@{
+    ViewData["Title"] = "Inventario ERP · Admin LuxuryCo";
+    var inventario  = ViewBag.Inventario  as List<LuxuryCo.Front.ViewModels.InventarioSedeViewModel>  ?? new List<LuxuryCo.Front.ViewModels.InventarioSedeViewModel>();
+    var historial   = ViewBag.Historial   as List<LuxuryCo.Front.ViewModels.AbastecimientoViewModel>   ?? new List<LuxuryCo.Front.ViewModels.AbastecimientoViewModel>();
+    var proveedores = ViewBag.Proveedores as List<LuxuryCo.Front.ViewModels.ProveedorViewModel>         ?? new List<LuxuryCo.Front.ViewModels.ProveedorViewModel>();
+    var productos   = ViewBag.Productos   as List<LuxuryCo.Front.ViewModels.ProductoViewModel>          ?? new List<LuxuryCo.Front.ViewModels.ProductoViewModel>();
+    var sedes       = ViewBag.Sedes       as List<LuxuryCo.Front.ViewModels.SedeViewModel>              ?? new List<LuxuryCo.Front.ViewModels.SedeViewModel>();
+
+    int totalItems    = inventario.Count;
+    int bajoStock     = inventario.Count(i => i.BajoStock);
+    int totalUnidades = inventario.Sum(i => i.CantidadDisponible);
+    int totalEntradas = historial.Count;
+}
+
+<style>
+    .erp-stat-card {
+        background: #141418;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        transition: border-color .3s, transform .3s;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .erp-stat-card:hover {
+        border-color: var(--adm-gold);
+        transform: translateY(-2px);
+    }
+    .erp-stat-number { font-size: 2.2rem; font-weight: 700; font-family: 'Playfair Display', serif; }
+    .erp-section-title { font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: #888; font-weight: 600; }
+    
+    .stock-badge-ok  { background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.2); padding: 4px 10px; font-size: .75rem; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+    .stock-badge-low { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); padding: 4px 10px; font-size: .75rem; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+    
+    .admin-input { background: #0d0d0f; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: .87rem; }
+    .admin-input:focus { background: #0d0d0f; border-color: #d4af37; color: #fff; box-shadow: 0 0 0 .15rem rgba(212,175,55,.25); }
+    .admin-label { font-size: .72rem; letter-spacing: 1px; text-transform: uppercase; color: #aaa; margin-bottom: 6px; display: block; font-weight: 600; }
+    
+    .offcanvas { background: #141418 !important; border-left: 1px solid rgba(255,255,255,0.07) !important; color: #f0f0f0; }
+    
+    .nav-pills .nav-link { border-radius: 8px; color: #888; font-size: .78rem; letter-spacing: 1px; text-transform: uppercase; padding: 8px 16px; border: 1px solid transparent; transition: all 0.2s; }
+    .nav-pills .nav-link:hover { color: #fff; }
+    .nav-pills .nav-link.active { background: rgba(212,175,55,0.1); color: #d4af37; border-color: rgba(212,175,55,0.2); font-weight: 600; }
+    
+    .progress { height: 6px; border-radius: 3px; background: #0d0d0f; overflow: hidden; }
+    .erp-mini-img { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
+    
+    @@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+    .tab-pane { animation: fadeIn .25s ease; }
+</style>
+
+<div class="adm-page-bg">
+
+    @* HEADER *@
+    <div class="adm-page-header">
+        <div class="adm-page-title-area">
+            <h1><i class="fas fa-warehouse me-2" style="color:var(--adm-gold);"></i>INVENTARIO ERP</h1>
+            <p>Control de stock multi-sede y entradas de mercadería de LuxuryCo.</p>
+        </div>
+        <button class="btn-adm-gold" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEntrada">
+            <i class="fas fa-plus"></i> REGISTRAR ENTRADA
+        </button>
+    </div>
+
+    <partial name="_AdminNav" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-dismissible fade show mx-4" role="alert" style="border-radius:12px;background:rgba(52, 211, 153, 0.1);color:#34d399;border:1px solid rgba(52, 211, 153, 0.2); margin: 1.5rem 2.5rem 0;">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-dismissible fade show mx-4" role="alert" style="border-radius:12px;background:rgba(248, 113, 113, 0.1);color:#f87171;border:1px solid rgba(248, 113, 113, 0.2); margin: 1.5rem 2.5rem 0;">
+            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* KPI CARDS *@
+    <div class="row g-3 mb-4" style="padding: 1.5rem 2.5rem 0;">
+        <div class="col-6 col-md-3">
+            <div class="erp-stat-card">
+                <div class="erp-stat-number" style="color:#d4af37;">@totalItems</div>
+                <div class="text-secondary small mt-1"><i class="fas fa-layer-group me-1"></i> Registros de Stock</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="erp-stat-card">
+                <div class="erp-stat-number" style="color:#34d399;">@totalUnidades</div>
+                <div class="text-secondary small mt-1"><i class="fas fa-boxes me-1"></i> Unidades Totales</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="erp-stat-card">
+                <div class="erp-stat-number" style="color:@(bajoStock > 0 ? "#f87171" : "#34d399");">@bajoStock</div>
+                <div class="text-secondary small mt-1"><i class="fas fa-exclamation-triangle me-1"></i> Bajo Stock</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="erp-stat-card">
+                <div class="erp-stat-number" style="color:#60a5fa;">@totalEntradas</div>
+                <div class="text-secondary small mt-1"><i class="fas fa-history me-1"></i> Entradas Registradas</div>
+            </div>
+        </div>
+    </div>
+
+    @* FILTRO POR SEDE *@
+    <div class="mb-3 d-flex align-items-center gap-2 flex-wrap" style="padding: 0 2.5rem;">
+        <span class="erp-section-title">Filtrar por sede:</span>
+        <a href="/Admin/Inventario" class="btn-adm-outline btn-sm @(ViewBag.SedeIdActual == null ? "btn-adm-gold" : "")" style="padding: 4px 12px; font-size: 0.75rem;">Todas</a>
+        @foreach (var s in sedes)
+        {
+            var esSede = ViewBag.SedeIdActual != null && ViewBag.SedeIdActual.ToString() == s.IdSede.ToString();
+            <a href="/Admin/Inventario?sedeId=@s.IdSede" class="btn-adm-outline btn-sm @(esSede ? "btn-adm-gold" : "")" style="padding: 4px 12px; font-size: 0.75rem;">@s.Nombre</a>
+        }
+    </div>
+
+    @* TABS *@
+    <div style="padding: 0 2.5rem;">
+        <ul class="nav nav-pills mb-3 gap-1">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="pill" href="#tab-stock">
+                    <i class="fas fa-warehouse me-1"></i> Stock Actual
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="pill" href="#tab-historial">
+                    <i class="fas fa-history me-1"></i> Historial de Entradas
+                </a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            @* TAB: STOCK *@
+            <div class="tab-pane fade show active" id="tab-stock">
+                @if (bajoStock > 0)
+                {
+                    <div class="alert mb-3" style="background:rgba(248, 113, 113, 0.1);color:#f87171;border:1px solid rgba(248, 113, 113, 0.2);border-radius:12px;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>@bajoStock producto(s) con stock igual o menor al umbral mínimo.</strong> Revisa las filas marcadas.
+                    </div>
+                }
+                
+                <div class="adm-container-card no-padding" style="margin:0;">
+                    <div class="table-responsive">
+                        <table class="adm-custom-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding-left: 2rem;">PRODUCTO</th>
+                                    <th>SEDE</th>
+                                    <th class="text-center">STOCK</th>
+                                    <th class="text-center">UMBRAL</th>
+                                    <th class="text-center">ESTADO</th>
+                                    <th style="padding-right: 2rem;" class="text-end">AJUSTAR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!inventario.Any())
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-secondary p-5" style="font-style:italic;">
+                                            Sin registros de inventario. Registra la primera entrada con el botón superior.
+                                        </td>
+                                    </tr>
+                                }
+                                @foreach (var item in inventario.OrderBy(i => i.BajoStock ? 0 : 1).ThenBy(i => i.SedeNombre))
+                                {
+                                    var pct = item.UmbralMinimo > 0 ? Math.Min((item.CantidadDisponible * 100) / (item.UmbralMinimo * 3), 100) : 100;
+                                    <tr style="@(item.BajoStock ? "background:rgba(248,113,113,.04);" : "")">
+                                        <td style="padding-left: 2rem;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                @if (!string.IsNullOrEmpty(item.ProductoImagen))
+                                                {
+                                                    <img src="@item.ProductoImagen" class="erp-mini-img" alt="img" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="erp-mini-img d-flex align-items-center justify-content-center bg-dark text-secondary">
+                                                        <i class="fas fa-box"></i>
+                                                    </div>
+                                                }
+                                                <span class="fw-bold text-white">@item.ProductoNombre</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-secondary">
+                                            <i class="fas fa-store-alt me-1" style="color:#d4af37;"></i>@item.SedeNombre
+                                        </td>
+                                        <td class="text-center fw-bold text-white" style="font-size:1.1rem;">@item.CantidadDisponible</td>
+                                        <td class="text-center">
+                                            <div class="text-secondary small">mín. @item.UmbralMinimo</div>
+                                            <div class="progress mt-1" style="max-width:120px; margin:0 auto;">
+                                                <div class="progress-bar @(item.BajoStock ? "bg-danger" : "bg-success")" style="width:@pct%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (item.BajoStock)
+                                            {
+                                                <span class="stock-badge-low"><i class="fas fa-exclamation-triangle"></i> Bajo Stock</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="stock-badge-ok"><i class="fas fa-check"></i> OK</span>
+                                            }
+                                        </td>
+                                        <td style="padding-right: 2rem;" class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary border-0 text-secondary" style="font-size:0.9rem;"
+                                                    data-bs-toggle="modal" data-bs-target="#modalAjuste"
+                                                    data-idproducto="@item.IdProducto"
+                                                    data-idsede="@item.IdSede"
+                                                    data-nombre="@item.ProductoNombre"
+                                                    data-sede="@item.SedeNombre"
+                                                    data-cantidad="@item.CantidadDisponible"
+                                                    data-umbral="@item.UmbralMinimo"
+                                                    title="Ajustar stock manualmente">
+                                                <i class="fas fa-sliders-h"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @* TAB: HISTORIAL *@
+            <div class="tab-pane fade" id="tab-historial">
+                <div class="adm-container-card no-padding" style="margin:0;">
+                    <div class="table-responsive">
+                        <table class="adm-custom-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding-left: 2rem;">PRODUCTO</th>
+                                    <th>PROVEEDOR</th>
+                                    <th>SEDE</th>
+                                    <th class="text-center">CANT.</th>
+                                    <th class="text-center">COSTO/U</th>
+                                    <th>FECHA</th>
+                                    <th style="padding-right: 2rem;">NOTAS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!historial.Any())
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center text-secondary p-5" style="font-style:italic;">
+                                            Sin historial de entradas registradas.
+                                        </td>
+                                    </tr>
+                                }
+                                @foreach (var h in historial)
+                                {
+                                    <tr>
+                                        <td style="padding-left: 2rem;" class="fw-bold text-white">@h.ProductoNombre</td>
+                                        <td class="text-secondary">@(h.ProveedorNombre ?? "—")</td>
+                                        <td class="text-secondary">
+                                            <i class="fas fa-store-alt me-1" style="color:#d4af37;"></i>@h.SedeNombre
+                                        </td>
+                                        <td class="text-center fw-bold text-success">+@h.Cantidad</td>
+                                        <td class="text-center text-white">$@h.CostoUnitario.ToString("N2")</td>
+                                        <td class="text-secondary small">@h.FechaIngreso.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding-right: 2rem;" class="text-secondary small">@(h.Notas ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* OFFCANVAS: REGISTRAR ENTRADA *@
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEntrada" style="width:440px;">
+    <div class="offcanvas-header" style="border-bottom:1px solid rgba(255,255,255,0.07); padding: 1.5rem;">
+        <h5 class="offcanvas-title fw-bold" style="letter-spacing:1px; font-family:'Playfair Display',serif; color:#f0f0f0;">
+            <i class="fas fa-plus-circle me-2" style="color:#d4af37;"></i> NUEVA ENTRADA
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body" style="padding: 1.5rem;">
+        <p class="text-secondary small mb-4">Registra la llegada de mercadería a una sede. El stock se incrementará automáticamente.</p>
+        <form asp-action="RegistrarEntrada" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label class="admin-label">Producto *</label>
+                <select name="IdProducto" class="form-select admin-input" required>
+                    <option value="">-- Selecciona un producto --</option>
+                    @foreach (var p in productos)
+                    {
+                        <option value="@p.IdProducto">@p.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="admin-label">Sede de Destino *</label>
+                <select name="IdSede" class="form-select admin-input" required>
+                    <option value="">-- Selecciona una sede --</option>
+                    @foreach (var s in sedes.Where(x => x.Activa))
+                    {
+                        <option value="@s.IdSede">@s.Nombre (@s.Ciudad)</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="admin-label">Proveedor (Opcional)</label>
+                <select name="IdProveedor" class="form-select admin-input">
+                    <option value="">-- Sin proveedor --</option>
+                    @foreach (var pv in proveedores.Where(x => x.Activo))
+                    {
+                        <option value="@pv.IdProveedor">@pv.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label class="admin-label">Cantidad *</label>
+                    <input type="number" name="Cantidad" class="form-control admin-input" min="1" value="1" required />
+                </div>
+                <div class="col-6">
+                    <label class="admin-label">Costo Unitario ($)</label>
+                    <input type="number" name="CostoUnitario" class="form-control admin-input" step="0.01" min="0" value="0" />
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="admin-label">Notas (Opcional)</label>
+                <textarea name="Notas" class="form-control admin-input" rows="2" placeholder="Ej. Compra mensual..."></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn-adm-outline w-50" data-bs-dismiss="offcanvas">Cancelar</button>
+                <button type="submit" class="btn-adm-gold w-50" style="justify-content:center;"><i class="fas fa-check"></i> Registrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* MODAL: AJUSTAR STOCK *@
+<div class="modal fade" id="modalAjuste" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+        <div class="modal-content" style="background:#141418;border:1px solid rgba(255,255,255,0.08);border-radius:16px;">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.07);">
+                <h5 class="modal-title fw-bold" style="letter-spacing:1px; font-family:'Playfair Display',serif; color:#f0f0f0;">
+                    <i class="fas fa-sliders-h me-2" style="color:#d4af37;"></i> AJUSTAR STOCK
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary small mb-3" id="ajusteDescripcion"></p>
+                <form asp-action="AjustarStock" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="idProducto" id="ajusteIdProducto" />
+                    <input type="hidden" name="idSede"     id="ajusteIdSede" />
+                    <div class="mb-3">
+                        <label class="admin-label">Nueva Cantidad en Stock</label>
+                        <input type="number" name="cantidad" id="ajusteCantidad" class="form-control admin-input" min="0" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="admin-label">Umbral de Alerta (Bajo Stock)</label>
+                        <input type="number" name="umbral" id="ajusteUmbral" class="form-control admin-input" min="0" required />
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn-adm-outline w-50" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn-adm-gold w-50" style="justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('modalAjuste').addEventListener('show.bs.modal', function (e) {
+    const btn = e.relatedTarget;
+    document.getElementById('ajusteIdProducto').value  = btn.dataset.idproducto;
+    document.getElementById('ajusteIdSede').value      = btn.dataset.idsede;
+    document.getElementById('ajusteCantidad').value    = btn.dataset.cantidad;
+    document.getElementById('ajusteUmbral').value      = btn.dataset.umbral;
+    document.getElementById('ajusteDescripcion').textContent =
+        'Producto: ' + btn.dataset.nombre + '  ·  Sede: ' + btn.dataset.sede;
+});
+</script>
+}
+

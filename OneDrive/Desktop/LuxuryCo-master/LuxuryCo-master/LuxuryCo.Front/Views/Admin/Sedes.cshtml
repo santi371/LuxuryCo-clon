@@ -1,0 +1,166 @@
+@{
+    ViewData["Title"] = "Sedes · Admin LuxuryCo";
+}
+
+<style>
+    .sede-input {
+        background-color: #0d0d0f !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 12px 15px !important;
+    }
+    .sede-input:focus {
+        border-color: #d4af37 !important;
+        box-shadow: 0 0 0 0.15rem rgba(212,175,55,0.25) !important;
+        background-color: #0d0d0f !important;
+    }
+    .cat-input::placeholder { color: #555 !important; }
+</style>
+
+<div class="adm-page-bg">
+    <div class="adm-page-header">
+        <div class="adm-page-title-area">
+            <h1><i class="fas fa-store-alt me-2" style="color:var(--adm-gold);"></i>SEDES</h1>
+            <p>Directorio y control de sucursales de LuxuryCo.</p>
+        </div>
+    </div>
+
+    <!-- Pestañas de Navegación Admin -->
+    <partial name="_AdminNav" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-dismissible fade show mx-4" role="alert" style="border-radius:12px;background:rgba(52, 211, 153, 0.1);color:#34d399;border:1px solid rgba(52, 211, 153, 0.2); margin: 1.5rem 2.5rem 0;">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-dismissible fade show mx-4" role="alert" style="border-radius:12px;background:rgba(248, 113, 113, 0.1);color:#f87171;border:1px solid rgba(248, 113, 113, 0.2); margin: 1.5rem 2.5rem 0;">
+            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4 px-4" style="margin-top: 0.5rem; padding: 0 1rem;">
+        <!-- Lista de Sedes -->
+        <div class="col-lg-8">
+            <div class="adm-container-card no-padding" style="margin:0;">
+                <div class="d-flex align-items-center justify-content-between px-4 py-3" style="border-bottom: 1px solid rgba(255,255,255,0.07);">
+                    <h5 class="mb-0 fw-bold" style="letter-spacing: 1px; font-size: 0.85rem; text-transform: uppercase;">Directorio de Sedes</h5>
+                    <span class="badge" style="background-color: rgba(255,255,255,0.05); color: #888; font-size: 0.75rem;">@(ViewBag.Sedes?.Count ?? 0) sedes operativas</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="adm-custom-table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left: 2rem;">Sede (Ciudad)</th>
+                                <th>Contacto</th>
+                                <th class="text-center">Estado</th>
+                                <th style="padding-right: 2rem;" class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.Sedes != null)
+                            {
+                                foreach (var sede in ViewBag.Sedes as List<LuxuryCo.Front.ViewModels.SedeViewModel> ?? new())
+                                {
+                                    <tr>
+                                        <td style="padding-left: 2rem;" class="fw-bold text-white">
+                                            @if (sede.Activa)
+                                            {
+                                                <span class="me-2" style="color: #d4af37;">●</span>
+                                            }
+                                            else 
+                                            {
+                                                <span class="me-2" style="color: #444;">●</span>
+                                            }
+                                            @sede.Nombre
+                                            <div class="text-secondary fw-normal mt-1" style="font-size: 0.75rem;">
+                                                <i class="fas fa-map-marker-alt" style="width:12px"></i> @sede.Ciudad - @(sede.Direccion ?? "Sin dirección")
+                                            </div>
+                                        </td>
+                                        <td class="text-secondary" style="font-size: 0.85rem;">
+                                            <i class="fas fa-phone-alt me-1"></i> @(sede.Telefono ?? "N/A")
+                                        </td>
+                                        <td class="text-center">
+                                            @if(sede.Activa)
+                                            {
+                                                <span class="adm-badge-active"><i class="fas fa-check-circle"></i> ACTIVA</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="adm-badge-inactive"><i class="fas fa-times-circle"></i> INACTIVA</span>
+                                            }
+                                        </td>
+                                        <td style="padding-right: 2rem;" class="text-end">
+                                            <form asp-action="ToggleSede" asp-route-id="@sede.IdSede" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary border-0 @(sede.Activa ? "text-danger" : "text-success")" style="font-size: 0.90rem;" title="@(sede.Activa ? "Desactivar sucursal" : "Activar sucursal")">
+                                                    @if(sede.Activa) {
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    } else {
+                                                        <i class="fas fa-eye"></i>
+                                                    }
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-secondary">No hay sedes operativas registradas.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario Nueva Sede -->
+        <div class="col-lg-4">
+            <div class="adm-container-card" style="margin:0;">
+                <h5 class="fw-bold mb-4" style="letter-spacing: 1px; font-size: 0.85rem; text-transform: uppercase; color: #f0f0f0;">Registrar Nueva Sede</h5>
+                <form asp-action="CrearSede" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #888; letter-spacing: 0.5px; text-transform: uppercase; font-size: 0.72rem;">Nombre (Punto de Venta) *</label>
+                        <input name="Nombre" type="text" class="form-control sede-input" placeholder="Ej: Flagship Store Norte" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #888; letter-spacing: 0.5px; text-transform: uppercase; font-size: 0.72rem;">Ciudad *</label>
+                        <input name="Ciudad" type="text" class="form-control sede-input" placeholder="Ej: Bogotá" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #888; letter-spacing: 0.5px; text-transform: uppercase; font-size: 0.72rem;">Dirección Exacta</label>
+                        <input name="Direccion" type="text" class="form-control sede-input" placeholder="Ej: CC Andino L203" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold" style="color: #888; letter-spacing: 0.5px; text-transform: uppercase; font-size: 0.72rem;">Teléfono de Contacto</label>
+                        <input name="Telefono" type="text" class="form-control sede-input" placeholder="Ej: +57 300 000 0000" />
+                    </div>
+
+                    <button type="submit" class="btn-adm-gold w-100 py-3" style="justify-content: center; font-size: 0.85rem;">
+                        <i class="fas fa-plus"></i> CREAR SEDE
+                    </button>
+                </form>
+            </div>
+
+            <!-- Nota Explicativa -->
+            <div class="mt-3 p-3" style="background-color: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.15); font-size: 0.8rem; color: #d4af37; border-radius: 12px;">
+                <i class="fas fa-info-circle me-2"></i>
+                La creación de sedes permite aislar el stock y conectar a los vendedores según el punto de facturación local o bodegaje.
+            </div>
+        </div>
+    </div>
+</div>
+

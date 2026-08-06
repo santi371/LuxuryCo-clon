@@ -1,0 +1,223 @@
+@model LuxuryCo.Front.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Crear una Cuenta";
+}
+
+<div class="auth-page-bg">
+    <div class="auth-card">
+
+        <div class="text-center mb-4">
+            <div class="auth-brand-title">LUXURYCO</div>
+            <div class="auth-brand-sub">Únete a la experiencia</div>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="auth-alert-error"><i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]</div>
+        }
+
+        <form id="registerForm" method="post" asp-action="Register" asp-controller="Account" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div class="row g-3 mb-3">
+                <div class="col-6 position-relative">
+                    <label class="auth-label">Nombre</label>
+                    <input name="Nombre" type="text" class="auth-input" placeholder="Carlos" 
+                           pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$" required />
+                    <div class="invalid-feedback" style="font-size: 0.75rem;">Ingresa un nombre válido (solo letras, sin símbolos ni caracteres como &amp; &lt; &gt;).</div>
+                </div>
+                <div class="col-6 position-relative">
+                    <label class="auth-label">Apellido</label>
+                    <input name="Apellido" type="text" class="auth-input" placeholder="García" 
+                           pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$" required />
+                    <div class="invalid-feedback" style="font-size: 0.75rem;">Ingresa un apellido válido (solo letras, sin símbolos ni caracteres como &amp; &lt; &gt;).</div>
+                </div>
+            </div>
+
+            <div class="mb-3 position-relative">
+                <label class="auth-label">Correo Electrónico</label>
+                <input name="Email" type="email" class="auth-input" placeholder="tu@correo.com" 
+                       pattern="^[a-zA-Z0-9._%+\-]+@@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$" required />
+                <div class="invalid-feedback" style="font-size: 0.75rem;">Ingresa un correo válido sin espacios ni caracteres peligrosos (ej: usuario@gmail.com).</div>
+                <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 5px;">
+                    * Por favor usa un correo real, necesitará ser verificado.
+                </small>
+            </div>
+
+            <div class="mb-3 position-relative">
+                <label class="auth-label">Teléfono</label>
+                <input id="telefonoInput" name="Telefono" type="tel" class="auth-input" placeholder="Ej: 3000000000"
+                       pattern="^\d{10,15}$" required />
+                <div id="telefonoError" class="invalid-feedback" style="font-size: 0.75rem;">Ingresa solo dígitos sin espacios ni símbolos (mínimo 10 dígitos).</div>
+            </div>
+
+            <div class="mb-3 position-relative">
+                <label class="auth-label">Contraseña</label>
+                <input id="pwdInput" name="Password" type="password" class="auth-input" placeholder="Mínimo 8 caracteres, mayúscula, minúscula y número"
+                       required />
+                <div id="pwdError" class="invalid-feedback" style="font-size: 0.75rem;">La contraseña no cumple los requisitos.</div>
+                <small style="color: var(--text-muted); font-size: 0.74rem; display: block; margin-top: 5px; line-height:1.6">
+                    ✔ Mínimo 8 caracteres &nbsp;·&nbsp; ✔ Mayúscula y minúscula &nbsp;·&nbsp; ✔ Al menos un número<br>
+                    ✔ Al menos un carácter especial (ej: <code style="font-size:0.72rem">! @@ # $ % ^ * - _ + = . ,</code>)<br>
+                    ✘ Sin espacios &nbsp;·&nbsp; ✘ Sin secuencias como 1234 o 9876 &nbsp;·&nbsp; ✘ Sin dígitos repetidos como 1111<br>
+                    ✘ Sin caracteres peligrosos: <code style="font-size:0.72rem">&amp; &lt; &gt; / " ' ` \</code>
+                </small>
+            </div>
+
+            <div class="mb-5 position-relative">
+                <label class="auth-label">Confirmar Contraseña</label>
+                <input id="pwdConfirm" name="ConfirmPassword" type="password" class="auth-input" placeholder="Repite tu contraseña" required />
+                <div class="invalid-feedback" style="font-size: 0.75rem;">Las contraseñas no coinciden.</div>
+            </div>
+
+            <button type="submit" class="btn-auth-primary mb-3">
+                <i class="fas fa-user-plus me-2"></i> Crear Cuenta
+            </button>
+
+            <hr class="auth-divider" />
+
+            <p class="text-center mb-0" style="font-size:.83rem;">
+                ¿Ya tienes cuenta? <a asp-action="Login" asp-controller="Account" class="auth-link">Inicia sesión aquí</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form       = document.getElementById('registerForm');
+        const inputs     = form.querySelectorAll('.auth-input');
+        const pwd        = document.getElementById('pwdInput');
+        const pwdConfirm = document.getElementById('pwdConfirm');
+        const telInput   = document.getElementById('telefonoInput');
+        const telError   = document.getElementById('telefonoError');
+        const pwdError   = document.getElementById('pwdError');
+
+        /* ---- Helpers de contraseña ---- */
+        function hasSequentialDigits(str) {
+            // Detecta 4 o más dígitos consecutivos ascendentes o descendentes
+            for (let i = 0; i <= str.length - 4; i++) {
+                const c = str.charCodeAt(i);
+                if (c < 48 || c > 57) continue; // solo dígitos
+                const asc  = str.charCodeAt(i+1) === c+1 && str.charCodeAt(i+2) === c+2 && str.charCodeAt(i+3) === c+3;
+                const desc = str.charCodeAt(i+1) === c-1 && str.charCodeAt(i+2) === c-2 && str.charCodeAt(i+3) === c-3;
+                if (asc || desc) return true;
+            }
+            return false;
+        }
+
+        function hasRepeatedDigits(str) {
+            // Detecta 4 o más dígitos iguales seguidos: 1111, 0000, etc.
+            return /(.)(\1{3,})/.test(str);
+        }
+
+        // Caracteres peligrosos que no se permiten en la contraseña
+        const DANGEROUS_CHARS = /[&<>\/("'`\\)]/;
+        // Al menos un carácter especial seguro
+        const SAFE_SPECIAL    = /[!@@#$%^*\-_+=\[\]{}|:;.,?~]/;
+
+        function validatePassword(value) {
+            if (value.length === 0)           return 'La contraseña es obligatoria.';
+            if (/\s/.test(value))             return 'La contraseña no puede contener espacios.';
+            if (DANGEROUS_CHARS.test(value))  return 'La contraseña contiene un carácter no permitido: & < > / " \' ` \\';
+            if (value.length < 8)             return 'Debe tener al menos 8 caracteres.';
+            if (!/[a-z]/.test(value))         return 'Debe incluir al menos una letra minúscula.';
+            if (!/[A-Z]/.test(value))         return 'Debe incluir al menos una letra mayúscula.';
+            if (!/\d/.test(value))            return 'Debe incluir al menos un número.';
+            if (!SAFE_SPECIAL.test(value))    return 'Debe incluir al menos un carácter especial (ej: ! @@ # $ % ^ * - _ + = . ,)';
+            if (hasSequentialDigits(value))   return 'No se permiten secuencias numéricas como 1234 o 9876.';
+            if (hasRepeatedDigits(value))     return 'No se permiten dígitos repetidos como 1111 o 0000.';
+            return null; // válida
+        }
+
+        /* ---- Helpers de teléfono ---- */
+        function validateTelefono(value) {
+            if (value.length === 0)    return 'El teléfono es obligatorio.';
+            if (/\s/.test(value))      return 'El teléfono no puede contener espacios.';
+            if (/[^\d]/.test(value))   return 'El teléfono solo puede contener números, sin símbolos ni letras.';
+            if (value.length < 10)     return 'El teléfono debe tener al menos 10 dígitos.';
+            if (value.length > 15)     return 'El teléfono no puede tener más de 15 dígitos.';
+            return null;
+        }
+
+        /* ---- Función central de validación ---- */
+        const validateInput = (input) => {
+            // Limpiar espacios en email y texto plano automáticamente
+            if (input.type === 'email' || input.type === 'text') {
+                input.value = input.value.trim();
+            }
+
+            // Bloquear caracteres peligrosos en campos de texto y email
+            if (input.type === 'text' || input.type === 'email') {
+                if (DANGEROUS_CHARS.test(input.value)) {
+                    input.setCustomValidity('No se permiten caracteres peligrosos como: & < > / " \' ` \\');
+                } else {
+                    // Limpiar solo si no hay otro error custom ya puesto
+                    if (input.validationMessage.startsWith('No se permiten')) {
+                        input.setCustomValidity('');
+                    }
+                }
+            }
+
+            // Contraseña — validación custom
+            if (input.id === 'pwdInput') {
+                const msg = validatePassword(input.value);
+                input.setCustomValidity(msg || '');
+                pwdError.textContent = msg || '';
+            }
+
+            // Confirmar contraseña
+            if (input.id === 'pwdConfirm') {
+                if (input.value === '') {
+                    input.setCustomValidity('Por favor confirma tu contraseña.');
+                } else if (input.value !== pwd.value) {
+                    input.setCustomValidity('Las contraseñas no coinciden.');
+                } else {
+                    input.setCustomValidity('');
+                }
+            }
+
+            // Teléfono — validación custom
+            if (input.id === 'telefonoInput') {
+                const msg = validateTelefono(input.value);
+                input.setCustomValidity(msg || '');
+                telError.textContent = msg || '';
+            }
+
+            // Aplicar clases Bootstrap is-invalid / is-valid
+            if (!input.checkValidity()) {
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                input.style.borderColor = 'var(--danger)';
+            } else {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+                input.style.borderColor = 'var(--success)';
+            }
+        };
+
+        inputs.forEach(input => {
+            input.addEventListener('blur',  () => validateInput(input));
+            input.addEventListener('input', () => {
+                if (input.classList.contains('is-invalid') || input.checkValidity() || input.id === 'pwdConfirm') {
+                    validateInput(input);
+                }
+            });
+        });
+
+        form.addEventListener('submit', function (event) {
+            let isValid = true;
+            inputs.forEach(input => {
+                validateInput(input);
+                if (!input.checkValidity()) isValid = false;
+            });
+            if (!isValid) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }, false);
+    });
+</script>
+}
+

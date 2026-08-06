@@ -1,0 +1,26 @@
+# Usa la imagen oficial del SDK de .NET 9 para construir el proyecto
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copia los archivos de proyecto para restaurar dependencias
+COPY ["LuxuryCo.Back/LuxuryCo.Back.csproj", "LuxuryCo.Back/"]
+COPY ["LuxuryCo.Database/LuxuryCo.Database.csproj", "LuxuryCo.Database/"]
+RUN dotnet restore "LuxuryCo.Back/LuxuryCo.Back.csproj"
+
+# Copia todo el código fuente
+COPY . .
+WORKDIR "/src/LuxuryCo.Back"
+
+# Compila y publica
+RUN dotnet publish "LuxuryCo.Back.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Usa la imagen de runtime para correr la app
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+
+# Exponemos el puerto para Render
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "LuxuryCo.Back.dll"]

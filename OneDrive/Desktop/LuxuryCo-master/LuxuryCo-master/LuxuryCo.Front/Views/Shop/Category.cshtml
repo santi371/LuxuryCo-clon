@@ -1,0 +1,667 @@
+@using LuxuryCo.Front.ViewModels
+@model IEnumerable<ProductoViewModel>
+
+@{
+    ViewData["Title"] = ViewData["CategoryName"];
+    var categoryName  = ViewData["CategoryName"]?.ToString() ?? "COLECCIÓN";
+}
+
+<style>
+    :root {
+        --gold: #c9a84c;
+        --gold-light: #e8c96e;
+        --dark: #0a0a0a;
+        --dark2: #111;
+        --dark3: #1a1a1a;
+        --obsidian: #2d2d2d;
+        --champagne: #f3e5ab;
+        --text-muted: #888;
+    }
+
+    .cat-wrapper {
+        background: var(--dark);
+        min-height: calc(100vh - 78px);
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Header ── */
+    .cat-header {
+        text-align: center;
+        padding: 50px 20px 30px;
+        border-bottom: 1px solid #1e1e1e;
+    }
+    .cat-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 600;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 24px;
+    }
+
+    /* ── Unified Filters Bar (Adaptive Header) ── */
+    .unified-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid #1a1a1a;
+        background: rgba(10, 10, 10, 0.85); /* Obsidian base */
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: padding 0.3s ease;
+    }
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #111;
+        border: 1px solid #2a2a2a;
+        border-radius: 4px;
+        padding: 5px 15px;
+        transition: border-color 0.3s ease;
+    }
+    .filter-group:focus-within {
+        border-color: var(--gold);
+    }
+    .filter-group i {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    .filter-input {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 0.8rem;
+        padding: 8px 0;
+        outline: none;
+    }
+    .filter-input::placeholder {
+        color: #666;
+    }
+    /* ── Custom Premium Dropdown ── */
+    .custom-dropdown {
+        position: relative;
+        font-family: 'Inter', sans-serif;
+    }
+    .dropdown-selected {
+        background: transparent;
+        color: #fff;
+        font-size: 0.85rem;
+        padding: 5px 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 140px;
+    }
+    .dropdown-selected i.fa-chevron-down {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        transition: transform 0.3s;
+    }
+    .custom-dropdown.open .dropdown-selected i.fa-chevron-down {
+        transform: rotate(180deg);
+    }
+    .dropdown-options {
+        position: absolute;
+        top: calc(100% + 15px);
+        left: 0;
+        background: var(--obsidian);
+        border: 1px solid #333;
+        border-radius: 4px;
+        list-style: none;
+        padding: 8px 0;
+        margin: 0;
+        min-width: 180px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        z-index: 200;
+    }
+    .custom-dropdown.open .dropdown-options {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .dropdown-options li {
+        padding: 10px 18px;
+        font-size: 0.8rem;
+        color: #bbb;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+    .dropdown-options li:hover, .dropdown-options li.active {
+        background: #1a1a1a;
+        color: var(--gold);
+    }
+
+    .product-counter {
+        font-size: 0.8rem;
+        color: var(--gold);
+        letter-spacing: 1px;
+        margin-left: auto;
+    }
+    @@media (max-width: 768px) {
+        .unified-filters { flex-direction: column; align-items: stretch; }
+        .product-counter { margin-left: 0; text-align: center; }
+    }
+
+    /* ── Product Grid ── */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: #1a1a1a;
+    }
+    @@media (max-width: 1200px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+    @@media (max-width: 768px)  { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 480px)  { .product-grid { grid-template-columns: 1fr; } }
+
+    /* ── Card ── */
+    .product-card {
+        background: var(--dark);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        transition: background 0.2s, transform 0.4s ease, box-shadow 0.4s ease;
+        transform-style: preserve-3d;
+    }
+    .product-card:hover {
+        background: #0e0e0e;
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.1);
+    }
+
+    /* ── Image Container — FIXED ASPECT RATIO ── */
+    .product-image-wrap {
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        overflow: hidden;
+        position: relative;
+        background: #0d0d0d;
+    }
+    .product-image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;      /* llena el marco SIN deformar */
+        object-position: center top;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.6s ease;
+        display: block;
+    }
+    .product-card:hover .product-image-wrap img {
+        transform: scale(1.04);
+        filter: brightness(1.15) contrast(1.05); /* The Silk Hover: Soft flash exposure */
+    }
+
+    /* ── Hover Overlay Actions (Clip-Path Reveal) ── */
+    .card-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.85));
+        padding: 40px 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+        transition: clip-path 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .product-card:hover .card-overlay { 
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+
+    /* Liquid Gold Fill para botones */
+    .overlay-btn {
+        background: transparent;
+        border: none;
+        border-top: 1px solid #222;
+        color: #fff;
+        padding: 13px 16px;
+        font-size: 0.72rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        transition: color 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .overlay-btn::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: var(--gold);
+        z-index: -1;
+        transform: scaleY(0);
+        transform-origin: bottom center;
+        transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .overlay-btn:hover { color: #000; font-weight: 700; }
+    .overlay-btn:hover::before { transform: scaleY(1); }
+
+    /* Badge */
+    .card-badge {
+        position: absolute;
+        top: 12px; right: 12px;
+        background: var(--gold);
+        color: #000;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        padding: 4px 9px;
+        z-index: 2;
+    }
+
+    /* ── Card Info ── */
+    .card-info {
+        padding: 14px 16px 18px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .card-brand {
+        font-size: 0.68rem;
+        color: var(--gold);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .card-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #fff;
+        text-transform: uppercase;
+        text-decoration: none;
+        line-height: 1.35;
+        letter-spacing: 0.5px;
+    }
+    .card-name:hover { color: var(--gold); }
+    .card-price {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-top: 4px;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state i { font-size: 2.5rem; color: var(--gold); margin-bottom: 16px; }
+    .empty-state h3 { font-family: 'Playfair Display', serif; color: #fff; letter-spacing: 2px; font-size: 1.4rem; }
+
+    /* ── Quick Buy Modal ── */
+    .qb-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 9000;
+        align-items: center;
+        justify-content: center;
+    }
+    .qb-overlay.open { display: flex; }
+    .qb-modal {
+        background: var(--dark2);
+        border: 1px solid #2a2a2a;
+        width: 90%;
+        max-width: 480px;
+        border-radius: 4px;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+    }
+    @@keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+    .qb-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 18px 22px;
+        border-bottom: 1px solid #222;
+    }
+    .qb-title { font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; color: #fff; }
+    .qb-close { background: none; border: none; color: #aaa; font-size: 1.4rem; cursor: pointer; }
+    .qb-close:hover { color: #fff; }
+    .qb-body { padding: 22px; }
+    .qb-img {
+        width: 100%; height: 220px; object-fit: cover;
+        border-radius: 2px; margin-bottom: 16px;
+    }
+    .qb-product-name { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; text-transform: uppercase; }
+    .qb-product-price { font-size: 1.1rem; color: var(--gold); font-weight: 700; margin-bottom: 18px; }
+    .qb-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .qb-sizes { display: flex; gap: 8px; margin-bottom: 20px; }
+    .qb-size {
+        width: 42px; height: 42px; border: 1px solid #333;
+        display: flex; justify-content: center; align-items: center;
+        cursor: pointer; font-size: 0.75rem; color: #aaa;
+        transition: all 0.2s; border-radius: 2px;
+    }
+    .qb-size:hover { border-color: var(--gold); color: var(--gold); }
+    .qb-size.active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+    .qb-btn {
+        width: 100%; padding: 14px;
+        background: var(--gold); color: #000;
+        border: none; font-size: 0.8rem;
+        font-weight: 700; letter-spacing: 3px;
+        text-transform: uppercase; cursor: pointer;
+        border-radius: 2px; transition: all 0.2s;
+    }
+    .qb-btn:hover { background: var(--gold-light); }
+
+    /* Toast */
+    .toast-lx {
+        position: fixed; top: 90px; right: 20px; z-index: 9999;
+        background: var(--dark2); border: 1px solid var(--gold);
+        color: #fff; padding: 14px 20px; border-radius: 4px;
+        min-width: 260px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        display: flex; align-items: center; gap: 10px;
+        transform: translateX(120%);
+        transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .toast-lx.show { transform: translateX(0); }
+    .toast-lx i { color: var(--gold); font-size: 1.1rem; }
+    .toast-msg strong { display: block; font-size: 0.85rem; }
+    .toast-msg span { font-size: 0.75rem; color: #aaa; }
+</style>
+
+<div class="cat-wrapper">
+    <!-- Header -->
+    <div class="cat-header pb-3 border-0">
+        <h1 class="cat-title mb-0">@categoryName</h1>
+    </div>
+
+    <!-- Unified Filters Bar -->
+    <div class="unified-filters">
+        <!-- Búsqueda -->
+        <div class="filter-group">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" class="filter-input" placeholder="Buscar producto..." onkeyup="applyFilters()">
+        </div>
+
+        <!-- Filtro Marca (Custom Dropdown) -->
+        <div class="filter-group">
+            <i class="fas fa-tag"></i>
+            <div class="custom-dropdown" id="ddBrand">
+                <div class="dropdown-selected" onclick="toggleDropdown('ddBrand')">
+                    <span id="ddBrandText">Todas las Marcas</span> <i class="fas fa-chevron-down ms-2"></i>
+                </div>
+                <ul class="dropdown-options">
+                    <li onclick="selectOption('brand', 'all', 'Todas las Marcas')" class="active">Todas las Marcas</li>
+                    <li onclick="selectOption('brand', 'Y/OUT', 'Y/OUT')">Y/OUT</li>
+                    <li onclick="selectOption('brand', 'MONEY MAKERS', 'MONEY MAKERS')">MONEY MAKERS</li>
+                    <li onclick="selectOption('brand', 'BLOW UP', 'BLOW UP')">BLOW UP</li>
+                    <li onclick="selectOption('brand', 'CULTUREWISE', 'CULTUREWISE')">CULTUREWISE</li>
+                </ul>
+            </div>
+            <input type="hidden" id="brandSelect" value="all" />
+        </div>
+
+        <!-- Filtro Ordenar (Custom Dropdown) -->
+        <div class="filter-group">
+            <i class="fas fa-sort-amount-down"></i>
+            <div class="custom-dropdown" id="ddSort">
+                <div class="dropdown-selected" onclick="toggleDropdown('ddSort')">
+                    <span id="ddSortText">Recientes primero</span> <i class="fas fa-chevron-down ms-2"></i>
+                </div>
+                <ul class="dropdown-options">
+                    <li onclick="selectOption('sort', 'default', 'Recientes primero')" class="active">Recientes primero</li>
+                    <li onclick="selectOption('sort', 'price-asc', 'Precio: Menor a Mayor')">Precio: Menor a Mayor</li>
+                    <li onclick="selectOption('sort', 'price-desc', 'Precio: Mayor a Menor')">Precio: Mayor a Menor</li>
+                    <li onclick="selectOption('sort', 'name-asc', 'Nombre: A → Z')">Nombre: A → Z</li>
+                </ul>
+            </div>
+            <input type="hidden" id="sortSelect" value="default" />
+        </div>
+
+        <!-- Contador -->
+        <div class="product-counter" id="productCount">
+            @(Model?.Count() ?? 0) productos
+        </div>
+    </div>
+
+    @if (TempData["CartMessage"] != null)
+    {
+        <div id="autoToast" class="toast-lx show">
+            <i class="fas fa-check-circle"></i>
+            <div class="toast-msg">
+                <strong>¡Añadido!</strong>
+                <span>@TempData["CartMessage"]</span>
+            </div>
+        </div>
+        <script>setTimeout(() => document.getElementById('autoToast')?.classList.remove('show'), 3000);</script>
+    }
+
+    <!-- Grid -->
+    <div class="container-fluid px-0">
+        <div class="product-grid" id="productGrid">
+            @if (Model != null && Model.Any())
+            {
+                int i = 0;
+                @foreach (var prod in Model)
+                {
+                    var imgUrl = !string.IsNullOrEmpty(prod.ImagenPrincipalUrl)
+                        ? prod.ImagenPrincipalUrl
+                        : "https://via.placeholder.com/400x500/0d0d0d/444?text=LuxuryCo";
+                    var precioFmt = string.Format("{0:N0}", prod.Precio);
+                    var marca = prod.MarcaNombre ?? "LuxuryCo";
+                    i++;
+
+                    <div class="product-card"
+                         data-brand="@marca"
+                         data-price="@prod.Precio"
+                         data-name="@prod.Nombre"
+                         data-aos="fade-up"
+                         data-aos-delay="@(100 * (i % 4))">
+                        <a href="/Shop/Product/@prod.IdProducto" class="product-image-wrap">
+                            <img src="@imgUrl" alt="@prod.Nombre" loading="lazy" />
+                            <span class="card-badge">NUEVO</span>
+
+                            <!-- Overlay con botones -->
+                            <div class="card-overlay">
+                                <button type="button"
+                                        class="overlay-btn"
+                                        onclick="openQuickBuy(event, @prod.IdProducto, '@Html.Raw(prod.Nombre.Replace("'","\\'"))', '$@precioFmt', '@imgUrl')">
+                                    <i class="fas fa-bolt"></i> COMPRA RÁPIDA
+                                </button>
+                            </div>
+                        </a>
+
+                        <div class="card-info">
+                            <div class="card-brand">@marca</div>
+                            <a href="/Shop/Product/@prod.IdProducto" class="card-name">@prod.Nombre</a>
+                            <div class="card-price">$@precioFmt</div>
+                        </div>
+
+                        <!-- Add to cart (oculto, se activa desde modal) -->
+                        <form id="cartForm_@prod.IdProducto" asp-controller="Cart" asp-action="Add" method="post" style="display:none;">
+                            <input type="hidden" name="productId" value="@prod.IdProducto" />
+                            <input type="hidden" name="quantity" value="1" id="qty_@prod.IdProducto" />
+                        </form>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-gem d-block"></i>
+                    <h3>PRÓXIMAMENTE</h3>
+                    <p style="font-size:0.85rem; margin-top:10px;">No hay productos en esta categoría aún. Vuelve pronto.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quick Buy Modal -->
+<div class="qb-overlay" id="qbOverlay" onclick="closeQBOnBackdrop(event)">
+    <div class="qb-modal">
+        <div class="qb-header">
+            <span class="qb-title">COMPRA RÁPIDA</span>
+            <button class="qb-close" onclick="closeQuickBuy()">&#x2715;</button>
+        </div>
+        <div class="qb-body">
+            <img src="" alt="" class="qb-img" id="qbImg" />
+            <div class="qb-product-name" id="qbName"></div>
+            <div class="qb-product-price" id="qbPrice"></div>
+
+            <div class="qb-label">TALLA</div>
+            <div class="qb-sizes">
+                <div class="qb-size active" onclick="selectQBSize(this)">S</div>
+                <div class="qb-size" onclick="selectQBSize(this)">M</div>
+                <div class="qb-size" onclick="selectQBSize(this)">L</div>
+                <div class="qb-size" onclick="selectQBSize(this)">XL</div>
+            </div>
+
+            <button class="qb-btn" id="qbAddBtn" onclick="submitQuickBuy()">
+                <i class="fas fa-shopping-bag me-2"></i> AÑADIR AL CARRITO
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-lx" id="mainToast">
+    <i class="fas fa-check-circle"></i>
+    <div class="toast-msg">
+        <strong>¡Añadido al carrito!</strong>
+        <span id="toastProdName"></span>
+    </div>
+</div>
+
+<script>
+    let currentProductId = null;
+
+    // ─── Custom Dropdowns JS ──────────────────────────────────────────
+    function toggleDropdown(id) {
+        // Cerrar otros
+        document.querySelectorAll('.custom-dropdown').forEach(dd => {
+            if (dd.id !== id) dd.classList.remove('open');
+        });
+        document.getElementById(id).classList.toggle('open');
+    }
+
+    function selectOption(type, value, text) {
+        if (type === 'brand') {
+            document.getElementById('brandSelect').value = value;
+            document.getElementById('ddBrandText').textContent = text;
+            document.getElementById('ddBrand').classList.remove('open');
+            applyFilters();
+        } else if (type === 'sort') {
+            document.getElementById('sortSelect').value = value;
+            document.getElementById('ddSortText').textContent = text;
+            document.getElementById('ddSort').classList.remove('open');
+            sortProducts();
+        }
+    }
+
+    // Cerrar clickeando afuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.custom-dropdown')) {
+            document.querySelectorAll('.custom-dropdown').forEach(dd => dd.classList.remove('open'));
+        }
+    });
+
+    // ─── Filters & Search ───────────────────────────────────────────
+    function applyFilters() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const brand = document.getElementById('brandSelect').value;
+        const cards = document.querySelectorAll('.product-card');
+        let visible = 0;
+
+        cards.forEach(card => {
+            const cardBrand = card.dataset.brand?.toUpperCase() ?? '';
+            const cardName = card.dataset.name?.toLowerCase() ?? '';
+            
+            const matchBrand = brand === 'all' || cardBrand.includes(brand.toUpperCase());
+            const matchSearch = cardName.includes(searchText);
+
+            const show = matchBrand && matchSearch;
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('productCount').textContent = visible + ' productos';
+        
+        // Mantener el orden seleccionado después de filtrar
+        sortProducts();
+    }
+
+    // ─── Sort ───────────────────────────────────────────────────────
+    function sortProducts() {
+        const mode  = document.getElementById('sortSelect').value;
+        const grid  = document.getElementById('productGrid');
+        const cards = [...grid.querySelectorAll('.product-card')];
+
+        cards.sort((a, b) => {
+            if (mode === 'price-asc')  return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+            if (mode === 'price-desc') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+            if (mode === 'name-asc')   return a.dataset.name.localeCompare(b.dataset.name);
+            return 0;
+        });
+        cards.forEach(c => grid.appendChild(c));
+    }
+
+    // ─── Quick Buy ──────────────────────────────────────────────────
+    function openQuickBuy(e, id, name, price, img) {
+        e.preventDefault();
+        e.stopPropagation();
+        currentProductId = id;
+        document.getElementById('qbImg').src    = img;
+        document.getElementById('qbImg').alt    = name;
+        document.getElementById('qbName').textContent  = name;
+        document.getElementById('qbPrice').textContent = price;
+        document.getElementById('qbOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeQuickBuy() {
+        document.getElementById('qbOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+        currentProductId = null;
+    }
+    function closeQBOnBackdrop(e) {
+        if (e.target === document.getElementById('qbOverlay')) closeQuickBuy();
+    }
+    function selectQBSize(el) {
+        document.querySelectorAll('.qb-size').forEach(s => s.classList.remove('active'));
+        el.classList.add('active');
+    }
+    function submitQuickBuy() {
+        if (!currentProductId) return;
+        const form = document.getElementById('cartForm_' + currentProductId);
+        if (form) {
+            const prodName = document.getElementById('qbName').textContent;
+            document.getElementById('toastProdName').textContent = prodName;
+            showToast();
+            closeQuickBuy();
+            form.submit();
+        }
+    }
+
+    // ─── Toast ──────────────────────────────────────────────────────
+    function showToast() {
+        const t = document.getElementById('mainToast');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // Escape key closes modal
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQuickBuy(); });
+</script>
+

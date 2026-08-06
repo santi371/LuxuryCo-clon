@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LuxuryCo</title>
+    <link rel="icon" type="image/x-icon" href="~/uploads/favicon_v2.ico" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Fonts: Plus Jakarta Sans for UI + Cormorant Garamond for elegant serif -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- AOS Library CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (User.Identity!.IsAuthenticated)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
+        <meta name="luxuryco-user-id" content="@userIdClaim" />
+    }
+    else
+    {
+        <meta name="luxuryco-user-id" content="0" />
+    }
+</head>
+<body>
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress"></div>
+    <header>
+        <nav class="luxury-navbar">
+            <div class="nav-links d-none d-md-flex align-items-center gap-2">
+                <div class="nav-3d-wrapper">
+                    <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                        <a asp-controller="Shop" asp-action="Category" asp-route-id="Mujer" class="nav-3d-face" style="border-color: #ffd700;">
+                            <div class="liquid-bg-gold-animated"></div>
+                            <div class="brand-3d-overlay"></div>
+                            <span style="position: relative; z-index: 2; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px;">
+                                <i class="fas fa-female" style="color: #ffd700;"></i> MUJER
+                            </span>
+                        </a>
+                    </div>
+                </div>
+                <div class="nav-3d-wrapper">
+                    <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                        <a asp-controller="Shop" asp-action="Category" asp-route-id="Hombre" class="nav-3d-face" style="border-color: #ffd700;">
+                            <div class="liquid-bg-gold-animated"></div>
+                            <div class="brand-3d-overlay"></div>
+                            <span style="position: relative; z-index: 2; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px;">
+                                <i class="fas fa-male" style="color: #ffd700;"></i> HOMBRE
+                            </span>
+                        </a>
+                    </div>
+                </div>
+                <div class="nav-3d-wrapper">
+                    <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                        <a asp-controller="Shop" asp-action="Category" asp-route-id="Accesorios" class="nav-3d-face" style="border-color: #ffd700;">
+                            <div class="liquid-bg-gold-animated"></div>
+                            <div class="brand-3d-overlay"></div>
+                            <span style="position: relative; z-index: 2; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px;">
+                                <i class="fas fa-gem" style="color: #ffd700;"></i> ACCESORIOS
+                            </span>
+                        </a>
+                    </div>
+                </div>
+                @if (User.Identity.IsAuthenticated && User.IsInRole("ADMIN"))
+                {
+                    <div class="nav-3d-wrapper">
+                        <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                            <a asp-controller="Admin" asp-action="Index" class="nav-3d-face" style="border-color: #ff4d4d;">
+                                <div class="liquid-bg-gold-animated"></div>
+                                <div class="brand-3d-overlay"></div>
+                                <span style="position: relative; z-index: 2; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; color: #ff6b6b;">
+                                    <i class="fas fa-lock"></i> PANEL ADMIN
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <!-- 3D Liquid Title -->
+            <div class="brand-3d-wrapper">
+                <div class="brand-3d-box js-tilt-3d" data-depth="10">
+                    <a class="brand-3d-face" style="border-color: #ffd700;" asp-area="" asp-controller="Home" asp-action="Index">
+                        <div class="liquid-bg-gold-animated"></div>
+                        <div class="brand-3d-overlay"></div>
+                        <span class="brand-3d-text" style="color: #ffffff;">LUXURYCO</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 3D Liquid Right Side Options -->
+            <div class="nav-icons d-flex align-items-center">
+                <!-- 3D Search Bar -->
+                <div class="nav-3d-wrapper me-2">
+                    <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                        <div class="nav-3d-face" style="padding: 4px 10px; border-color: #ffd700;">
+                            <div class="liquid-bg-gold-animated"></div>
+                            <div class="brand-3d-overlay"></div>
+                            <form asp-controller="Shop" asp-action="Search" id="global-search-form" method="get" class="d-flex align-items-center position-relative" style="max-width: 190px; z-index: 2;">
+                                <input type="text" name="q" id="global-search-input" class="form-control-luxury" placeholder="BUSCAR..." style="padding: 2px 22px 2px 22px; font-size: 0.75rem; border: none; background: transparent; color: #fff;" required />
+                                <button type="submit" style="background:transparent; border:none; color:#fff; position:absolute; left:0; top:50%; transform:translateY(-50%);">
+                                    <i class="fas fa-search" style="font-size:0.8rem;"></i>
+                                </button>
+                                <button type="button" id="btn-search-mic" style="background:transparent; border:none; color:#ccc; position:absolute; right:0; top:50%; transform:translateY(-50%); cursor:pointer;">
+                                    <i class="fas fa-microphone" id="search-mic-icon" style="font-size:0.75rem;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="nav-3d-wrapper">
+                        <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                            <a asp-controller="Account" asp-action="Profile" class="nav-3d-face nav-3d-icon-btn" style="border-color: #ffd700;" title="Mi Perfil">
+                                <div class="liquid-bg-gold-animated"></div>
+                                <div class="brand-3d-overlay"></div>
+                                <span style="position: relative; z-index: 2;"><i class="fas fa-user-circle" style="font-size: 1.1rem; color: #ffd700;"></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-3d-wrapper">
+                        <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                            <a asp-controller="Account" asp-action="Logout" class="nav-3d-face nav-3d-icon-btn" style="border-color: #ffd700;" title="Cerrar Sesión">
+                                <div class="liquid-bg-gold-animated"></div>
+                                <div class="brand-3d-overlay"></div>
+                                <span style="position: relative; z-index: 2;"><i class="fas fa-sign-out-alt" style="font-size: 1.1rem; color: #ffd700;"></i></span>
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="nav-3d-wrapper">
+                        <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                            <a asp-controller="Account" asp-action="Login" class="nav-3d-face nav-3d-icon-btn" style="border-color: #ffd700;" title="Iniciar Sesión">
+                                <div class="liquid-bg-gold-animated"></div>
+                                <div class="brand-3d-overlay"></div>
+                                <span style="position: relative; z-index: 2;"><i class="far fa-user" style="font-size: 1.1rem; color: #ffd700;"></i></span>
+                            </a>
+                        </div>
+                    </div>
+                }
+
+                <!-- 3D Cart Icon -->
+                <div class="nav-3d-wrapper">
+                    <div class="nav-3d-box js-tilt-3d" data-depth="6">
+                        <a asp-controller="Cart" asp-action="Index" class="nav-3d-face nav-3d-icon-btn position-relative" style="border-color: #ffd700;" title="Ver Carrito">
+                            <div class="liquid-bg-gold-animated"></div>
+                            <div class="brand-3d-overlay"></div>
+                            <span style="position: relative; z-index: 2; display: flex; align-items: center;">
+                                <i class="fas fa-shopping-bag" style="font-size: 1.1rem; color: #ffd700;"></i>
+                                <span id="cart-badge-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em; display: none;">0</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <main role="main" class="pb-3" style="min-height: 80vh;">
+        @RenderBody()
+    </main>
+
+    <!-- Luxury Footer -->
+    @if (ViewContext.RouteData.Values["Controller"]?.ToString() != "Admin")
+    {
+        <footer class="luxury-footer text-white pt-5 pb-3">
+            <div class="container-fluid px-5">
+                <div class="row custom-footer-grid">
+                    <!-- Column 1: Quienes Somos -->
+                    <div class="col-footer">
+                        <h5 class="footer-title">¿QUIÉNES SOMOS?</h5>
+                        <p class="footer-text mt-3">
+                            Somos una marca que no le teme al riesgo, que se lanza al vacío.
+                            <br><br>
+                            Que nunca deja atrás el recato, el lujo y, sobre todo,
+                            <strong>¡la exclusividad!</strong>
+                            <br><br>
+                            Somos <strong>Luxury</strong>, y a partir de hoy, somos la marca que dejará una nueva huella en tu vida y en tu estilo.
+                        </p>
+                    </div>
+
+                    <!-- Column 2: Suscríbete -->
+                    <div class="col-footer">
+                        <h5 class="footer-title">SUSCRÍBETE</h5>
+                        <p class="footer-text mt-3">Para acceder a información y lanzamiento de nuevas colecciones</p>
+                        <form class="mt-3">
+                            <input type="email" class="form-control mb-2 subscribe-input" placeholder="Ingresa tu E-mail" required />
+                            <button type="submit" class="btn btn-light w-100 fw-bold subscribe-btn">ENVIAR</button>
+                        </form>
+                        <div class="social-icons mt-4 d-flex gap-3">
+                            <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+                            <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Menu -->
+                    <div class="col-footer">
+                        <h5 class="footer-title">MENU</h5>
+                        <ul class="footer-links list-unstyled mt-3">
+                            <li><a asp-controller="Shop" asp-action="Category" asp-route-id="Hombre">HOMBRE</a></li>
+                            <li><a asp-controller="Shop" asp-action="Category" asp-route-id="Mujer">MUJER</a></li>
+                            <li><a asp-controller="Shop" asp-action="Category" asp-route-id="Todos">MARCAS</a></li>
+                            <li><a asp-controller="Shop" asp-action="Category" asp-route-id="Todos">SALE</a></li>
+                            <li><a asp-controller="Home" asp-action="Distributors">DISTRIBUIDORES</a></li>
+                            <li><a asp-controller="Home" asp-action="B2B">ACCESO B2B</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 4: Políticas -->
+                    <div class="col-footer">
+                        <h5 class="footer-title">POLÍTICAS</h5>
+                        <ul class="footer-links list-unstyled mt-3">
+                            <li><a asp-area="" asp-controller="Home" asp-action="Privacy">Políticas De Privacidad</a></li>
+                            <li><a asp-controller="Home" asp-action="Refunds">Política De Reembolso</a></li>
+                            <li><a asp-controller="Home" asp-action="Shipping">Política De Envío</a></li>
+                            <li><a asp-controller="Home" asp-action="Nosotros">Sobre Nosotros</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 5: Vigilado -->
+                    <div class="col-footer text-center text-md-start">
+                        <h5 class="footer-title">VIGILADO</h5>
+                        <div class="mt-3">
+                            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:6px;">
+                                <img src="~/uploads/logosic_v2.ico" alt="Vigilado Superintendencia de Industria y Comercio" style="width:200px; height:auto; object-fit:contain;" asp-append-version="true" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="border-secondary mt-5 mb-4" />
+                
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p class="mb-1 text-secondary" style="font-size: 0.85rem;">LUXURY ACCESORIES ®</p>
+                        <p class="mb-0 text-secondary" style="font-size: 0.85rem;">Todos Los Derechos Reservados</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                        <div class="payment-icons d-inline-flex gap-2 bg-white px-2 py-1 rounded" style="opacity: 0.9;">
+                            <!-- Payment Icons Mockup -->
+                            <i class="fab fa-cc-visa fa-2x" style="color:#1434CB;"></i>
+                            <i class="fab fa-cc-mastercard fa-2x" style="color:#EB001B;"></i>
+                            <i class="fab fa-cc-amex fa-2x" style="color:#2e77bc;"></i>
+                            <i class="fab fa-cc-diners-club fa-2x" style="color:#0079C1;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    }
+
+
+    <style>
+        .luxury-footer {
+            background-color: #000;
+            border-top: 1px solid #222;
+        }
+        .footer-title {
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .footer-text {
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.6;
+        }
+        .subscribe-input {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 0;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+        }
+        .subscribe-input:focus {
+            background-color: #222;
+            color: #fff;
+            border-color: #666;
+            box-shadow: none;
+        }
+        .subscribe-btn {
+            border-radius: 0;
+            letter-spacing: 2px;
+            padding: 10px;
+        }
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            background-color: #fff;
+            color: #000;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .social-icon:hover {
+            transform: scale(1.1);
+            color: #000;
+        }
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        .footer-links a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+            text-transform: uppercase;
+        }
+        .footer-links a:hover {
+            color: #fff;
+        }
+        
+        .custom-footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @@media (max-width: 992px) {
+            .custom-footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @@media (max-width: 576px) {
+            .custom-footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
+    <style>
+        /* ── Scroll Progress Bar ── */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold, #d4af37), #fff);
+            z-index: 99999;
+            transition: width 0.1s ease-out;
+        }
+
+        /* ── Ripple Effect ── */
+        .ripple-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-anim 0.6s linear;
+            background-color: rgba(255, 255, 255, 0.4);
+            pointer-events: none;
+        }
+        @@keyframes ripple-anim {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    </style>
+
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/particulas.js" asp-append-version="true"></script>
+    
+    <!-- AOS Library JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // Init AOS (animaciones al hacer scroll)
+            if (typeof AOS !== 'undefined') {
+                AOS.init({ duration: 800, once: true, offset: 50 });
+            }
+
+            // Init Tilt: reemplazado por CSS puro (ver site.css / estilos de categoría)
+
+            // Scroll Progress Bar
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                if (height > 0) {
+                    document.getElementById('scroll-progress').style.width = ((winScroll / height) * 100) + '%';
+                }
+            });
+
+            // Ripple Effect en botones principales
+            document.querySelectorAll('.ripple-btn, .btn-cta-main').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    const rect = this.getBoundingClientRect();
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple';
+                    ripple.style.left = (e.clientX - rect.left) + 'px';
+                    ripple.style.top  = (e.clientY - rect.top)  + 'px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Supabase Password Reset Email Interceptor
+            if (window.location.hash && window.location.hash.includes('type=recovery')) {
+                window.location.href = '/Account/ResetPassword' + window.location.hash;
+            }
+
+            // 4. Voice Search Integration
+            const btnSearchMic = document.getElementById('btn-search-mic');
+            const searchMicIcon = document.getElementById('search-mic-icon');
+            const globalSearchInput = document.getElementById('global-search-input');
+            const globalSearchForm = document.getElementById('global-search-form');
+
+            if (btnSearchMic) {
+                btnSearchMic.addEventListener('click', () => {
+                    if (window.VoiceAssistant && window.VoiceAssistant.state === "LISTENING") {
+                        window.VoiceAssistant.stopListening();
+                    } else if (window.VoiceAssistant) {
+                        window.VoiceAssistant.startListening(
+                            (text) => {
+                                globalSearchInput.value = text;
+                                globalSearchForm.submit();
+                            },
+                            (state) => {
+                                if (state === "LISTENING") {
+                                    searchMicIcon.className = "fas fa-microphone text-danger";
+                                } else if (state === "PROCESSING") {
+                                    searchMicIcon.className = "fas fa-circle-notch fa-spin text-warning";
+                                } else {
+                                    searchMicIcon.className = "fas fa-microphone";
+                                }
+                            }
+                    }
+                });
+            }
+
+            // 5. 3D Tilt Effect para LUXURYCO Title y Botones Líquidos del Navbar
+            const tiltElements = document.querySelectorAll('.js-tilt-3d');
+            tiltElements.forEach(el => {
+                const depth = parseInt(el.getAttribute('data-depth') || '10');
+                
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    const px = (e.clientX - rect.left) / rect.width - 0.5;
+                    const py = (e.clientY - rect.top) / rect.height - 0.5;
+                    const tiltX = py * -14;
+                    const tiltY = px * 14;
+                    el.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                });
+
+                el.addEventListener('mouseleave', () => {
+                    el.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                });
+
+                el.addEventListener('mousedown', () => {
+                    el.style.transform += ` translateZ(-${depth / 2}px)`;
+                });
+
+                el.addEventListener('mouseup', () => {
+                    el.style.transform = el.style.transform.replace(/translateZ\(.*?\)/, '');
+                });
+            });
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+    <partial name="_AiStylistWidget" />
+</body>
+</html>
+

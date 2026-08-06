@@ -1,0 +1,285 @@
+<style>
+    .adm-nav-wrapper {
+        background: #0d0d0f;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        padding: 0 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+    }
+    .adm-nav-tabs {
+        display: flex;
+        align-items: center;
+        gap: 0.1rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        flex-wrap: wrap;
+    }
+    .adm-nav-tabs li a {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 1rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        color: #777;
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        transition: all 0.25s;
+        white-space: nowrap;
+        text-transform: uppercase;
+    }
+    .adm-nav-tabs li a:hover {
+        color: #d4af37;
+        border-bottom-color: rgba(212,175,55,0.4);
+    }
+    .adm-nav-tabs li a.is-active {
+        color: #d4af37;
+        border-bottom-color: #d4af37;
+        font-weight: 600;
+    }
+    .adm-nav-tabs li a.is-ai {
+        color: #a78bfa;
+    }
+    .adm-nav-tabs li a.is-ai:hover, .adm-nav-tabs li a.is-ai.is-active {
+        color: #a78bfa;
+        border-bottom-color: #a78bfa;
+    }
+    .adm-nav-divider {
+        width: 1px;
+        height: 20px;
+        background: rgba(255,255,255,0.1);
+        margin: 0 0.5rem;
+    }
+    .adm-nav-search {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 0;
+        position: relative;
+    }
+    .adm-nav-search select {
+        background: #1c1c22;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #aaa;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        outline: none;
+    }
+    .adm-nav-search-box {
+        display: flex;
+        align-items: center;
+        background: #1c1c22;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 0 12px;
+        gap: 8px;
+        transition: border-color 0.2s;
+    }
+    .adm-nav-search-box:focus-within {
+        border-color: rgba(212,175,55,0.5);
+    }
+    .adm-nav-search-box i { color: #555; font-size: 0.8rem; }
+    .adm-nav-search-box input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #ddd;
+        font-size: 0.82rem;
+        padding: 7px 0;
+        width: 180px;
+    }
+    .adm-nav-search-box input::placeholder { color: #555; }
+    #globalSearchResults {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        min-width: 320px;
+        background: #141418;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        z-index: 9999;
+        max-height: 300px;
+        overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .search-suggestion-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        color: #ccc;
+        font-size: 0.83rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        transition: background 0.15s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .search-suggestion-item:last-child { border-bottom: none; }
+    .search-suggestion-item:hover { background: rgba(212,175,55,0.1); color: #d4af37; }
+
+    @@keyframes highlight-blink {
+        0% { background-color: transparent; }
+        15% { background-color: rgba(212,175,55,0.2); transform: scale(1.01); }
+        50% { background-color: rgba(212,175,55,0.05); transform: scale(1); }
+        80% { background-color: rgba(212,175,55,0.15); }
+        100% { background-color: transparent; }
+    }
+    .highlight-animated {
+        animation: highlight-blink 4s ease-in-out;
+        border-left: 3px solid #d4af37 !important;
+    }
+</style>
+
+@{
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
+    string NavClass(string action) => currentAction == action ? "is-active" : "";
+}
+
+<nav class="adm-nav-wrapper">
+    <ul class="adm-nav-tabs">
+        <!-- Dashboard -->
+        <li>
+            <a asp-action="Index" class="@NavClass("Index")">
+                <i class="fas fa-th-large"></i>Dashboard
+            </a>
+        </li>
+
+        <div class="adm-nav-divider"></div>
+
+        <!-- Catalogo -->
+        <li>
+            <a asp-action="Productos" class="@NavClass("Productos")">
+                <i class="fas fa-box-open"></i>Productos
+            </a>
+        </li>
+        <li>
+            <a asp-action="Inventario" class="@NavClass("Inventario")">
+                <i class="fas fa-warehouse"></i>Inventario
+            </a>
+        </li>
+        <li>
+            <a asp-action="Categorias" class="@NavClass("Categorias")">
+                <i class="fas fa-layer-group"></i>Categorias
+            </a>
+        </li>
+        <li>
+            <a asp-action="Marcas" class="@NavClass("Marcas")">
+                <i class="fas fa-tags"></i>Marcas
+            </a>
+        </li>
+
+        <div class="adm-nav-divider"></div>
+
+        <!-- Personas -->
+        <li>
+            <a asp-action="Usuarios" class="@NavClass("Usuarios")">
+                <i class="fas fa-users"></i>Usuarios
+            </a>
+        </li>
+        <li>
+            <a asp-action="Proveedores" class="@NavClass("Proveedores")">
+                <i class="fas fa-truck"></i>Proveedores
+            </a>
+        </li>
+        <li>
+            <a asp-action="Sedes" class="@NavClass("Sedes")">
+                <i class="fas fa-store-alt"></i>Sedes
+            </a>
+        </li>
+
+        <div class="adm-nav-divider"></div>
+
+        <!-- IA -->
+        <li>
+            <a asp-action="AiAssistant" class="is-ai @NavClass("AiAssistant")">
+                <i class="fas fa-robot"></i>Asistente IA
+            </a>
+        </li>
+    </ul>
+
+    <!-- Buscador -->
+    <div class="adm-nav-search">
+        <select id="globalSearchFilter">
+            <option value="all">Todo</option>
+            <option value="producto">Producto</option>
+            <option value="usuario">Usuario</option>
+            <option value="marca">Marca</option>
+        </select>
+        <div class="adm-nav-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="globalSearchInput" placeholder="Buscar en el panel..." autocomplete="off" />
+        </div>
+        <ul id="globalSearchResults" class="d-none"></ul>
+    </div>
+</nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var searchInput = document.getElementById("globalSearchInput");
+    var searchFilter = document.getElementById("globalSearchFilter");
+    var searchResults = document.getElementById("globalSearchResults");
+    var typingTimer;
+
+    if (!searchInput) return;
+
+    searchInput.addEventListener("input", function() {
+        clearTimeout(typingTimer);
+        var query = this.value.trim();
+        var filter = searchFilter.value;
+        if (query.length < 2) { searchResults.classList.add("d-none"); return; }
+
+        typingTimer = setTimeout(function() {
+            fetch('/Admin/BuscarGlobal?q=' + encodeURIComponent(query) + '&filter=' + filter)
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    searchResults.innerHTML = "";
+                    if (data.length === 0) {
+                        searchResults.innerHTML = '<li class="search-suggestion-item text-center" style="color:#888;">Sin resultados</li>';
+                    } else {
+                        data.forEach(function(item) {
+                            var icon = "fa-box", action = "Productos", entityName = "item";
+                            if (item.type === "usuario") { icon = "fa-user"; action = "Usuarios"; entityName = "user"; }
+                            if (item.type === "marca") { icon = "fa-tag"; action = "Marcas"; entityName = "marca"; }
+                            var li = document.createElement("li");
+                            li.className = "search-suggestion-item";
+                            li.innerHTML = '<div><i class="fas ' + icon + ' me-2" style="color:#d4af37;"></i><strong>' + item.name + '</strong></div><small style="color:#888;">' + item.detail + '</small>';
+                            li.onclick = function() { window.location.href = '/Admin/' + action + '?highlight=' + entityName + '-' + item.id; };
+                            searchResults.appendChild(li);
+                        });
+                    }
+                    searchResults.classList.remove("d-none");
+                });
+        }, 400);
+    });
+
+    document.addEventListener("click", function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target) && !searchFilter.contains(e.target)) {
+            searchResults.classList.add("d-none");
+        }
+    });
+
+    // Highlight animation
+    var params = new URLSearchParams(window.location.search);
+    var highlightId = params.get("highlight");
+    if (highlightId) {
+        setTimeout(function() {
+            var targetRow = document.getElementById(highlightId);
+            if (targetRow) {
+                targetRow.scrollIntoView({ behavior:'smooth', block:'center' });
+                targetRow.classList.add("highlight-animated");
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }, 500);
+    }
+});
+</script>
+

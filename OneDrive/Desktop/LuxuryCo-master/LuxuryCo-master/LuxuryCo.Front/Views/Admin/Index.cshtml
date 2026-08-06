@@ -1,0 +1,510 @@
+@{
+    ViewData["Title"] = "Dashboard · Admin LuxuryCo";
+}
+
+<style>
+    :root {
+        --adm-bg: #0d0d0f;
+        --adm-surface: #141418;
+        --adm-surface2: #1c1c22;
+        --adm-border: rgba(255,255,255,0.07);
+        --adm-gold: #d4af37;
+        --adm-gold-dim: rgba(212,175,55,0.15);
+        --adm-text: #f0f0f0;
+        --adm-muted: #888;
+        --adm-green: #34d399;
+        --adm-green-dim: rgba(52,211,153,0.12);
+        --adm-red: #f87171;
+        --adm-red-dim: rgba(248,113,113,0.12);
+        --adm-blue: #60a5fa;
+        --adm-blue-dim: rgba(96,165,250,0.12);
+        --adm-purple: #a78bfa;
+        --adm-purple-dim: rgba(167,139,250,0.12);
+    }
+
+    .adm-wrapper {
+        background: var(--adm-bg);
+        min-height: 100vh;
+        color: var(--adm-text);
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        padding: 2rem;
+    }
+
+    .adm-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .adm-header-left h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--adm-text);
+        margin: 0;
+        letter-spacing: 1px;
+    }
+    .adm-header-left p { color: var(--adm-muted); font-size: 0.85rem; margin: 0.2rem 0 0; }
+
+    .adm-badge-live {
+        background: var(--adm-green-dim);
+        color: var(--adm-green);
+        border: 1px solid rgba(52,211,153,0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .adm-badge-live::before {
+        content: '';
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--adm-green);
+        animation: pulse-green 1.5s infinite;
+        display: inline-block;
+    }
+    @@keyframes pulse-green {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .adm-card {
+        background: var(--adm-surface);
+        border: 1px solid var(--adm-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: border-color 0.3s, transform 0.3s;
+    }
+    .adm-card:hover { border-color: rgba(212,175,55,0.3); transform: translateY(-2px); }
+
+    .adm-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .adm-kpi {
+        background: var(--adm-surface);
+        border: 1px solid var(--adm-border);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s;
+    }
+    .adm-kpi:hover { border-color: rgba(212,175,55,0.3); transform: translateY(-2px); }
+    .adm-kpi-icon {
+        width: 50px; height: 50px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; flex-shrink: 0;
+    }
+    .adm-kpi-info h3 { font-size: 1.5rem; font-weight: 700; margin: 0; line-height: 1; }
+    .adm-kpi-info p { font-size: 0.78rem; color: var(--adm-muted); margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .adm-kpi-trend { margin-left: auto; font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 8px; }
+    .trend-up { background: var(--adm-green-dim); color: var(--adm-green); }
+    .trend-down { background: var(--adm-red-dim); color: var(--adm-red); }
+    .trend-neutral { background: var(--adm-gold-dim); color: var(--adm-gold); }
+
+    .adm-charts-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    @@media (max-width: 900px) { .adm-charts-row { grid-template-columns: 1fr; } }
+
+    .adm-card-title {
+        font-size: 0.95rem; font-weight: 600;
+        color: var(--adm-text);
+        margin: 0 0 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .adm-card-title .period-select {
+        background: var(--adm-surface2);
+        border: 1px solid var(--adm-border);
+        color: var(--adm-muted);
+        border-radius: 8px;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        cursor: pointer;
+    }
+
+    .adm-bottom-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    @@media (max-width: 900px) { .adm-bottom-row { grid-template-columns: 1fr; } }
+
+    .adm-quick-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    @@media (max-width: 700px) { .adm-quick-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .adm-quick-btn {
+        background: var(--adm-surface);
+        border: 1px solid var(--adm-border);
+        border-radius: 14px;
+        padding: 1.2rem 1rem;
+        text-decoration: none;
+        color: var(--adm-text);
+        display: flex; flex-direction: column;
+        align-items: center; gap: 0.6rem;
+        transition: all 0.3s; text-align: center;
+    }
+    .adm-quick-btn:hover {
+        border-color: var(--adm-gold);
+        background: var(--adm-gold-dim);
+        color: var(--adm-gold);
+        transform: translateY(-3px);
+    }
+    .adm-quick-btn i { font-size: 1.6rem; }
+    .adm-quick-btn span { font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+
+    .adm-activity-item {
+        display: flex; align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--adm-border);
+    }
+    .adm-activity-item:last-child { border-bottom: none; }
+    .adm-activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+    .adm-activity-text { font-size: 0.82rem; color: var(--adm-text); line-height: 1.4; }
+    .adm-activity-time { font-size: 0.73rem; color: var(--adm-muted); margin-top: 2px; }
+
+    .adm-table { width: 100%; border-collapse: collapse; }
+    .adm-table th {
+        text-align: left; font-size: 0.72rem; text-transform: uppercase;
+        letter-spacing: 1px; color: var(--adm-muted);
+        padding: 0 0 0.75rem; border-bottom: 1px solid var(--adm-border);
+    }
+    .adm-table td { padding: 0.75rem 0; font-size: 0.84rem; border-bottom: 1px solid var(--adm-border); vertical-align: middle; }
+    .adm-table tr:last-child td { border-bottom: none; }
+    .prod-bar-bg { background: var(--adm-surface2); border-radius: 4px; height: 6px; width: 80px; }
+    .prod-bar { height: 6px; border-radius: 4px; background: var(--adm-gold); }
+</style>
+
+<div class="adm-wrapper">
+
+    <div class="adm-header">
+        <div class="adm-header-left">
+            <h1><i class="fas fa-gem me-2" style="color:var(--adm-gold); font-size:1.4rem;"></i>Dashboard</h1>
+            <p>Panel de control &middot; LuxuryCo Admin &middot; <span id="adm-date"></span></p>
+        </div>
+        <div>
+            <span class="adm-badge-live">DEMO EN VIVO</span>
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="adm-kpi-grid">
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon" style="background:var(--adm-gold-dim); color:var(--adm-gold);"><i class="fas fa-shopping-bag"></i></div>
+            <div class="adm-kpi-info">
+                <h3 id="kpi-orders">0</h3>
+                <p>Pedidos Hoy</p>
+            </div>
+            <div class="adm-kpi-trend trend-up">+12%</div>
+        </div>
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon" style="background:var(--adm-blue-dim); color:var(--adm-blue);"><i class="fas fa-users"></i></div>
+            <div class="adm-kpi-info">
+                <h3 id="kpi-visitors">0</h3>
+                <p>Visitantes Hoy</p>
+            </div>
+            <div class="adm-kpi-trend trend-up">+8%</div>
+        </div>
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon" style="background:var(--adm-green-dim); color:var(--adm-green);"><i class="fas fa-dollar-sign"></i></div>
+            <div class="adm-kpi-info">
+                <h3 id="kpi-revenue">$0</h3>
+                <p>Ingresos Este Mes</p>
+            </div>
+            <div class="adm-kpi-trend trend-up">+22%</div>
+        </div>
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon" style="background:var(--adm-purple-dim); color:var(--adm-purple);"><i class="fas fa-box-open"></i></div>
+            <div class="adm-kpi-info">
+                <h3 id="kpi-products">0</h3>
+                <p>Productos en Cat&aacute;logo</p>
+            </div>
+            <div class="adm-kpi-trend trend-neutral">Activo</div>
+        </div>
+    </div>
+
+    <!-- GRAFICOS -->
+    <div class="adm-charts-row">
+        <div class="adm-card">
+            <div class="adm-card-title">
+                <span><i class="fas fa-chart-line me-2" style="color:var(--adm-gold);"></i>Actividad de Usuarios</span>
+                <select class="period-select" id="chart-period-select">
+                    <option value="semanas">Por semana</option>
+                    <option value="meses">Por mes</option>
+                </select>
+            </div>
+            <canvas id="chartActividad" height="100"></canvas>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-title">
+                <span><i class="fas fa-chart-pie me-2" style="color:var(--adm-gold);"></i>Por Categor&iacute;a</span>
+            </div>
+            <canvas id="chartDonut" height="180"></canvas>
+            <div style="margin-top:1rem; display:flex; flex-direction:column; gap:0.4rem;" id="donut-legend"></div>
+        </div>
+    </div>
+
+    <!-- TABLA + ACTIVIDAD -->
+    <div class="adm-bottom-row">
+        <div class="adm-card">
+            <div class="adm-card-title">
+                <span><i class="fas fa-star me-2" style="color:var(--adm-gold);"></i>Productos M&aacute;s Populares</span>
+            </div>
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Categor&iacute;a</th>
+                        <th>Vistas</th>
+                        <th>Popularidad</th>
+                    </tr>
+                </thead>
+                <tbody id="top-products-body"></tbody>
+            </table>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-title">
+                <span><i class="fas fa-bell me-2" style="color:var(--adm-gold);"></i>Actividad Reciente</span>
+            </div>
+            <div id="activity-feed"></div>
+        </div>
+    </div>
+
+    <!-- COMPARATIVA -->
+    <div class="adm-card" style="margin-bottom:1.5rem;">
+        <div class="adm-card-title">
+            <span><i class="fas fa-chart-bar me-2" style="color:var(--adm-gold);"></i>Comparativa de Tr&aacute;fico &mdash; Este a&ntilde;o vs. A&ntilde;o anterior</span>
+        </div>
+        <canvas id="chartComparativa" height="80"></canvas>
+    </div>
+
+    <!-- ACCESO RAPIDO -->
+    <div style="font-size:1rem; font-weight:700; color:var(--adm-text); margin-bottom:0.75rem;">
+        <i class="fas fa-th-large me-2" style="color:var(--adm-gold);"></i>Acceso R&aacute;pido
+    </div>
+    <div class="adm-quick-grid">
+        <a asp-action="Productos" class="adm-quick-btn">
+            <i class="fas fa-box-open" style="color:#d4af37;"></i>
+            <span>Productos</span>
+        </a>
+        <a asp-action="Inventario" class="adm-quick-btn">
+            <i class="fas fa-warehouse" style="color:#34d399;"></i>
+            <span>Inventario</span>
+        </a>
+        <a asp-action="Marcas" class="adm-quick-btn">
+            <i class="fas fa-tags" style="color:#60a5fa;"></i>
+            <span>Marcas</span>
+        </a>
+        <a asp-action="Usuarios" class="adm-quick-btn">
+            <i class="fas fa-users" style="color:#a78bfa;"></i>
+            <span>Usuarios</span>
+        </a>
+        <a asp-action="Sedes" class="adm-quick-btn">
+            <i class="fas fa-store-alt" style="color:#f87171;"></i>
+            <span>Sedes</span>
+        </a>
+        <a asp-action="AiAssistant" class="adm-quick-btn" style="border-color:rgba(212,175,55,0.4);">
+            <i class="fas fa-robot" style="color:#d4af37;"></i>
+            <span>Asistente IA</span>
+        </a>
+    </div>
+
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Fecha
+    const now = new Date();
+    document.getElementById('adm-date').textContent =
+        now.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // KPIs animados
+    function animateCount(elId, target, prefix, suffix) {
+        prefix = prefix || '';
+        suffix = suffix || '';
+        const el = document.getElementById(elId);
+        if (!el) return;
+        let current = 0;
+        const step = Math.ceil(target / 60);
+        const timer = setInterval(function() {
+            current = Math.min(current + step, target);
+            el.textContent = prefix + current.toLocaleString('es-CO') + suffix;
+            if (current >= target) clearInterval(timer);
+        }, 20);
+    }
+    animateCount('kpi-orders', 47);
+    animateCount('kpi-visitors', 1284);
+    animateCount('kpi-revenue', 38450, '$', ' USD');
+    animateCount('kpi-products', 124);
+
+    Chart.defaults.color = '#888';
+    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+
+    // Grafico lineas
+    const semanas = {
+        labels: ['L','M','X','J','V','S','D','L','M','X','J','V','S','D','L','M','X','J','V','S','D','L','M','X','J','V','S','D'],
+        thisYear: [120,145,132,180,200,230,210,195,220,240,215,260,290,275,240,260,285,305,290,320,310,280,305,330,315,360,380,355],
+        lastYear: [100,115,108,140,160,175,165,150,170,185,165,200,220,210,185,200,220,240,225,250,240,215,235,255,242,278,294,275],
+    };
+    const meses = {
+        labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+        thisYear: [2800,3100,2950,3400,3700,4200,4500,4300,4700,5100,4900,5500],
+        lastYear: [2200,2450,2300,2700,2900,3300,3500,3300,3600,3900,3750,4200],
+    };
+
+    const ctxLine = document.getElementById('chartActividad').getContext('2d');
+    const gradGold = ctxLine.createLinearGradient(0,0,0,250);
+    gradGold.addColorStop(0,'rgba(212,175,55,0.25)');
+    gradGold.addColorStop(1,'rgba(212,175,55,0.01)');
+    const gradBlue = ctxLine.createLinearGradient(0,0,0,250);
+    gradBlue.addColorStop(0,'rgba(96,165,250,0.2)');
+    gradBlue.addColorStop(1,'rgba(96,165,250,0.01)');
+
+    const lineChart = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: semanas.labels,
+            datasets: [
+                { label: 'Este año', data: semanas.thisYear, borderColor:'#d4af37', backgroundColor:gradGold, borderWidth:2.5, pointRadius:0, pointHoverRadius:5, tension:0.4, fill:true },
+                { label: 'Año anterior', data: semanas.lastYear, borderColor:'#60a5fa', backgroundColor:gradBlue, borderWidth:2, pointRadius:0, pointHoverRadius:5, tension:0.4, fill:true, borderDash:[5,3] }
+            ]
+        },
+        options: {
+            responsive:true,
+            interaction:{ mode:'index', intersect:false },
+            plugins:{
+                legend:{ labels:{ color:'#aaa', font:{ size:12 }, boxWidth:12 } },
+                tooltip:{ backgroundColor:'#1c1c22', borderColor:'rgba(212,175,55,0.3)', borderWidth:1, titleColor:'#d4af37', bodyColor:'#ccc' }
+            },
+            scales:{
+                x:{ grid:{ color:'rgba(255,255,255,0.04)' }, ticks:{ maxTicksLimit:7 } },
+                y:{ grid:{ color:'rgba(255,255,255,0.04)' } }
+            }
+        }
+    });
+
+    document.getElementById('chart-period-select').addEventListener('change', function() {
+        var data = this.value === 'meses' ? meses : semanas;
+        lineChart.data.labels = data.labels;
+        lineChart.data.datasets[0].data = data.thisYear;
+        lineChart.data.datasets[1].data = data.lastYear;
+        lineChart.update('active');
+    });
+
+    // Donut
+    var donutData = {
+        labels: ['Mujer','Hombre','Accesorios','Joyeria'],
+        data:   [42, 28, 18, 12],
+        colors: ['#d4af37','#60a5fa','#34d399','#a78bfa'],
+    };
+    new Chart(document.getElementById('chartDonut').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: donutData.labels,
+            datasets: [{ data: donutData.data, backgroundColor: donutData.colors, borderColor:'#141418', borderWidth:3, hoverOffset:8 }]
+        },
+        options: {
+            responsive:true, cutout:'72%',
+            plugins:{
+                legend:{ display:false },
+                tooltip:{ backgroundColor:'#1c1c22', borderColor:'rgba(212,175,55,0.3)', borderWidth:1, titleColor:'#d4af37', bodyColor:'#ccc', callbacks:{ label: function(ctx){ return ' ' + ctx.label + ': ' + ctx.parsed + '%'; } } }
+            }
+        }
+    });
+    var legend = document.getElementById('donut-legend');
+    donutData.labels.forEach(function(l, i) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;';
+        row.innerHTML = '<span style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:3px;background:' + donutData.colors[i] + ';display:inline-block;"></span>' + l + '</span><span style="color:' + donutData.colors[i] + ';font-weight:700;">' + donutData.data[i] + '%</span>';
+        legend.appendChild(row);
+    });
+
+    // Barras comparativa
+    new Chart(document.getElementById('chartComparativa').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+            datasets: [
+                { label:'Este año', data:[2800,3100,2950,3400,3700,4200,4500,4300,4700,5100,4900,5500], backgroundColor:'rgba(212,175,55,0.75)', borderRadius:6, barPercentage:0.5 },
+                { label:'Año anterior', data:[2200,2450,2300,2700,2900,3300,3500,3300,3600,3900,3750,4200], backgroundColor:'rgba(96,165,250,0.5)', borderRadius:6, barPercentage:0.5 }
+            ]
+        },
+        options: {
+            responsive:true,
+            interaction:{ mode:'index', intersect:false },
+            plugins:{
+                legend:{ labels:{ color:'#aaa', font:{ size:12 }, boxWidth:12 } },
+                tooltip:{ backgroundColor:'#1c1c22', borderColor:'rgba(212,175,55,0.3)', borderWidth:1, titleColor:'#d4af37', bodyColor:'#ccc' }
+            },
+            scales:{ x:{ grid:{ display:false }, ticks:{ color:'#888' } }, y:{ grid:{ color:'rgba(255,255,255,0.04)' }, ticks:{ color:'#888' } } }
+        }
+    });
+
+    // Top productos
+    var topProducts = [
+        { name:'Vestido Noir Elite', cat:'Mujer', views:842, pct:90 },
+        { name:'Reloj Prestige S9', cat:'Accesorios', views:710, pct:76 },
+        { name:'Saco Urbano X', cat:'Hombre', views:634, pct:68 },
+        { name:'Collar Gold Chain', cat:'Joyeria', views:521, pct:55 },
+        { name:'Cartera Slim Luxe', cat:'Hombre', views:480, pct:51 },
+    ];
+    var tbody = document.getElementById('top-products-body');
+    topProducts.forEach(function(p) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td><strong style="color:#f0f0f0;">' + p.name + '</strong></td><td><span style="font-size:0.72rem;background:rgba(212,175,55,0.1);color:#d4af37;padding:2px 8px;border-radius:6px;">' + p.cat + '</span></td><td style="color:#aaa;">' + p.views.toLocaleString() + '</td><td><div class="prod-bar-bg"><div class="prod-bar" style="width:' + p.pct + '%;"></div></div></td>';
+        tbody.appendChild(tr);
+    });
+
+    // Feed actividad
+    var activities = [
+        { color:'#34d399', text:'Nuevo usuario registrado: <strong>carlos@mail.com</strong>', time:'hace 3 min' },
+        { color:'#d4af37', text:'Producto <strong>Vestido Noir Elite</strong> marcado como favorito', time:'hace 8 min' },
+        { color:'#60a5fa', text:'Visita al catalogo de <strong>Accesorios</strong> desde movil', time:'hace 15 min' },
+        { color:'#a78bfa', text:'Admin actualizo precio de <strong>Reloj Prestige S9</strong>', time:'hace 22 min' },
+        { color:'#f87171', text:'Sesion expirada para <strong>guest_user_48</strong>', time:'hace 30 min' },
+        { color:'#34d399', text:'<strong>1,284</strong> visitantes activos en el sitio ahora mismo', time:'hace 1 min' },
+    ];
+    var feed = document.getElementById('activity-feed');
+    activities.forEach(function(a) {
+        var div = document.createElement('div');
+        div.className = 'adm-activity-item';
+        div.innerHTML = '<div class="adm-activity-dot" style="background:' + a.color + ';"></div><div><div class="adm-activity-text">' + a.text + '</div><div class="adm-activity-time">' + a.time + '</div></div>';
+        feed.appendChild(div);
+    });
+
+    // Simular tiempo real en KPI visitantes
+    setInterval(function() {
+        var el = document.getElementById('kpi-visitors');
+        if (el) {
+            var variation = Math.floor(Math.random() * 20) - 10;
+            el.textContent = (1284 + variation).toLocaleString('es-CO');
+        }
+    }, 4000);
+});
+</script>
+}
+

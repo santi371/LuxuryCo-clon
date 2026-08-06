@@ -1,0 +1,542 @@
+@{
+    ViewData["Title"] = "Asistente IA · Admin LuxuryCo";
+}
+
+<style>
+    .ai-wrapper {
+        background: #0d0d0f;
+        min-height: 100vh;
+        color: #f0f0f0;
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    }
+    .ai-header {
+        padding: 1.75rem 2rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .ai-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #f0f0f0;
+        margin: 0;
+        letter-spacing: 1px;
+    }
+    .ai-header p { color: #888; font-size: 0.83rem; margin: 0.25rem 0 0; }
+
+    .ai-body {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 1.25rem;
+        padding: 1.5rem 2rem;
+        height: calc(100vh - 160px);
+    }
+    @@media (max-width: 900px) { .ai-body { grid-template-columns: 1fr; height: auto; } }
+
+    /* Chat card */
+    .ai-chat-card {
+        background: #141418;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        height: 100%;
+    }
+    .ai-chat-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+    .ai-chat-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .ai-avatar {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #d4af37, #8b6914);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; color: #000; flex-shrink: 0;
+    }
+    .ai-chat-name { font-weight: 600; font-size: 0.92rem; color: #f0f0f0; margin: 0; }
+    .ai-chat-status { font-size: 0.72rem; color: #34d399; display: flex; align-items: center; gap: 5px; }
+    .ai-chat-status::before { content:''; width:6px; height:6px; border-radius:50%; background:#34d399; display:inline-block; }
+    .ai-clear-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #aaa;
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .ai-clear-btn:hover { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.4); color: #f87171; }
+
+    /* Messages */
+    #chat-box {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    #chat-box::-webkit-scrollbar { width: 5px; }
+    #chat-box::-webkit-scrollbar-track { background: transparent; }
+    #chat-box::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+    .ai-welcome {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #555;
+    }
+    .ai-welcome i { font-size: 2.5rem; color: #d4af37; margin-bottom: 0.5rem; display: block; }
+    .ai-welcome p { font-size: 0.85rem; }
+
+    .chat-msg {
+        max-width: 78%;
+        padding: 10px 15px;
+        border-radius: 14px;
+        line-height: 1.55;
+        font-size: 0.88rem;
+        animation: msg-in 0.25s ease;
+    }
+    @@keyframes msg-in {
+        from { opacity:0; transform: translateY(8px); }
+        to { opacity:1; transform: translateY(0); }
+    }
+    .msg-user {
+        margin-left: auto;
+        background: linear-gradient(135deg, #d4af37, #8b6914);
+        color: #000;
+        border-bottom-right-radius: 4px;
+        font-weight: 500;
+    }
+    .msg-ai {
+        margin-right: auto;
+        background: #1c1c22;
+        color: #ddd;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-left: 3px solid #d4af37;
+        border-bottom-left-radius: 4px;
+    }
+
+    .ai-typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 10px 15px;
+        background: #1c1c22;
+        border-radius: 14px;
+        border-bottom-left-radius: 4px;
+        width: fit-content;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-left: 3px solid #d4af37;
+    }
+    .ai-typing-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%; background: #d4af37;
+        animation: typing-bounce 1.2s infinite ease-in-out;
+    }
+    .ai-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .ai-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @@keyframes typing-bounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-6px); }
+    }
+
+    /* Input area */
+    .ai-input-area {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid rgba(255,255,255,0.07);
+        flex-shrink: 0;
+    }
+    .ai-input-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #0d0d0f;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 6px 6px 6px 12px;
+        transition: border-color 0.2s;
+    }
+    .ai-input-row:focus-within { border-color: rgba(212,175,55,0.5); }
+    .ai-input-row input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #f0f0f0;
+        font-size: 0.88rem;
+        padding: 6px 0;
+    }
+    .ai-input-row input::placeholder { color: #555; }
+    .ai-icon-btn {
+        background: transparent;
+        border: none;
+        color: #555;
+        width: 34px; height: 34px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+    .ai-icon-btn:hover { background: rgba(255,255,255,0.07); color: #aaa; }
+    .ai-send-btn {
+        background: #d4af37;
+        color: #000;
+        border: none;
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .ai-send-btn:hover { background: #f0c940; transform: scale(1.05); }
+
+    /* Sidebar */
+    .ai-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .ai-panel {
+        background: #141418;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
+    .ai-panel-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #d4af37;
+        margin: 0 0 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .ai-theme-btn {
+        width: 100%;
+        background: #1c1c22;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #aaa;
+        border-radius: 8px;
+        padding: 7px 12px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-align: left;
+        margin-bottom: 0.4rem;
+        transition: all 0.2s;
+    }
+    .ai-theme-btn:hover, .ai-theme-btn.is-active { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.08); }
+
+    .ai-suggestion {
+        background: #1c1c22;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 0.78rem;
+        color: #aaa;
+        cursor: pointer;
+        margin-bottom: 0.4rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .ai-suggestion:hover { border-color: #d4af37; color: #d4af37; }
+    .ai-suggestion i { color: #d4af37; font-size: 0.7rem; }
+</style>
+
+<div class="ai-wrapper">
+    <div class="ai-header">
+        <h1><i class="fas fa-robot me-2" style="color:#d4af37;"></i>Asistente IA</h1>
+        <p>Consulta informacion de tu tienda, inventario, usuarios y mas.</p>
+    </div>
+
+    <partial name="_AdminNav" />
+
+    <div class="ai-body">
+        <!-- Chat principal -->
+        <div class="ai-chat-card">
+            <div class="ai-chat-header">
+                <div class="ai-chat-header-left">
+                    <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                    <div>
+                        <div class="ai-chat-name">LuxuryCo Admin AI</div>
+                        <div class="ai-chat-status">Conectado &mdash; listo para analizar</div>
+                    </div>
+                </div>
+                <button class="ai-clear-btn" onclick="clearChat()">
+                    <i class="fas fa-trash-alt me-1"></i>Limpiar
+                </button>
+            </div>
+
+            <div id="chat-box">
+                <div class="ai-welcome" id="ai-welcome-msg">
+                    <i class="fas fa-gem"></i>
+                    <p>Hola, soy tu asistente inteligente de LuxuryCo.<br>
+                    Puedo analizar ventas, inventario, usuarios y mas.<br>
+                    <span style="color:#d4af37;">Escribe tu primera pregunta para comenzar.</span></p>
+                </div>
+                <div id="messages-container"></div>
+                <div id="ai-typing" class="d-none">
+                    <div class="ai-typing-indicator">
+                        <div class="ai-typing-dot"></div>
+                        <div class="ai-typing-dot"></div>
+                        <div class="ai-typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-input-area">
+                <form id="chat-form">
+                    <div class="ai-input-row">
+                        <button type="button" class="ai-icon-btn" id="btn-file-upload" title="Adjuntar archivo">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <input type="file" id="file-input" class="d-none" accept=".csv,.txt,.pdf,.jpg,.png">
+                        <button type="button" class="ai-icon-btn" id="btn-voice" title="Dictar por voz">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <input type="text" id="user-input" placeholder="Pregunta sobre ventas, inventario, sugerencias..." autocomplete="off" required>
+                        <button type="submit" class="ai-send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="ai-sidebar">
+            <!-- Sugerencias rapidas -->
+            <div class="ai-panel">
+                <div class="ai-panel-title"><i class="fas fa-bolt"></i>Preguntas Rapidas</div>
+                <div class="ai-suggestion" onclick="sendSuggestion(this)">
+                    <i class="fas fa-arrow-right"></i>Cuantos productos hay en inventario?
+                </div>
+                <div class="ai-suggestion" onclick="sendSuggestion(this)">
+                    <i class="fas fa-arrow-right"></i>Que marcas tenemos disponibles?
+                </div>
+                <div class="ai-suggestion" onclick="sendSuggestion(this)">
+                    <i class="fas fa-arrow-right"></i>Cuantos usuarios estan registrados?
+                </div>
+                <div class="ai-suggestion" onclick="sendSuggestion(this)">
+                    <i class="fas fa-arrow-right"></i>Cuales son los productos mas caros?
+                </div>
+                <div class="ai-suggestion" onclick="sendSuggestion(this)">
+                    <i class="fas fa-arrow-right"></i>Que sedes estan activas?
+                </div>
+            </div>
+
+            <!-- Apariencia del chat -->
+            <div class="ai-panel">
+                <div class="ai-panel-title"><i class="fas fa-paint-brush"></i>Apariencia</div>
+                <div class="ai-theme-btn is-active" onclick="setTheme('#0d0d0d', this)">Luxury Dark</div>
+                <div class="ai-theme-btn" onclick="setTheme('#0f1117', this)">Deep Navy</div>
+                <div class="ai-theme-btn" onclick="setTheme('#1a1208', this)">Warm Bronze</div>
+            </div>
+
+            <!-- Info -->
+            <div class="ai-panel" style="border-color:rgba(212,175,55,0.2);">
+                <div class="ai-panel-title"><i class="fas fa-info-circle"></i>Sobre la IA</div>
+                <p style="font-size:0.78rem; color:#666; margin:0; line-height:1.6;">
+                    Conectado a la base de datos de LuxuryCo en tiempo real via API. Responde preguntas sobre productos, inventario, usuarios y sedes.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        loadPreferences();
+
+        var chatForm = document.getElementById('chat-form');
+        var userInput = document.getElementById('user-input');
+        var messagesContainer = document.getElementById('messages-container');
+        var aiTyping = document.getElementById('ai-typing');
+        var chatBox = document.getElementById('chat-box');
+        var btnVoice = document.getElementById('btn-voice');
+        var btnFile = document.getElementById('btn-file-upload');
+        var fileInput = document.getElementById('file-input');
+
+        // SignalR
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/adminNotifications")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveNotification", function(message) {
+            appendMessage("Notificacion del Sistema: " + message, 'ai');
+        });
+        connection.start().catch(function(err) { console.error("SignalR error:", err.toString()); });
+
+        // File upload
+        btnFile.addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', async function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            appendMessage('Subiendo archivo: ' + file.name + '...', 'user');
+            var formData = new FormData();
+            formData.append('file', file);
+            try {
+                var response = await fetch('/api/Ai/upload-context-file', { method:'POST', body:formData });
+                if (response.ok) {
+                    var data = await response.json();
+                    userInput.value += '[Contexto: ' + data.secureReferenceUrl + '] ';
+                    appendMessage('Archivo analizado. Referencia agregada al mensaje.', 'ai');
+                } else {
+                    appendMessage('Error al subir el archivo: ' + response.statusText, 'ai');
+                }
+            } catch (err) {
+                appendMessage('Error de conexion al subir archivo.', 'ai');
+            }
+        });
+
+        // Voice
+        var mediaRecorder, audioChunks = [];
+        btnVoice.addEventListener('mousedown', async function() {
+            try {
+                var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = function(e) { audioChunks.push(e.data); };
+                mediaRecorder.onstop = async function() {
+                    var audioBlob = new Blob(audioChunks, { type:'audio/webm' });
+                    audioChunks = [];
+                    var formData = new FormData();
+                    formData.append('file', audioBlob, 'voice.webm');
+                    aiTyping.classList.remove('d-none');
+                    try {
+                        var res = await fetch('/api/Ai/transcribe', { method:'POST', body:formData });
+                        if (res.ok) {
+                            var data = await res.json();
+                            userInput.value += (userInput.value ? ' ' : '') + data.text;
+                        }
+                    } catch(err) {} finally { aiTyping.classList.add('d-none'); }
+                };
+                mediaRecorder.start();
+                btnVoice.querySelector('i').className = 'fas fa-stop-circle';
+                btnVoice.style.color = '#f87171';
+            } catch(err) { alert("Permiso de microfono denegado."); }
+        });
+        btnVoice.addEventListener('mouseup', function() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                btnVoice.querySelector('i').className = 'fas fa-microphone';
+                btnVoice.style.color = '';
+                mediaRecorder.stream.getTracks().forEach(function(t){ t.stop(); });
+            }
+        });
+
+        // Theme selector
+        document.querySelectorAll('.ai-theme-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.ai-theme-btn').forEach(function(b){ b.classList.remove('is-active'); });
+                this.classList.add('is-active');
+            });
+        });
+
+        // Submit form
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var text = userInput.value.trim();
+            if (!text) return;
+
+            var welcome = document.getElementById('ai-welcome-msg');
+            if (welcome) welcome.remove();
+
+            appendMessage(text, 'user');
+            userInput.value = '';
+            aiTyping.classList.remove('d-none');
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                var response = await fetch('/Admin/SendAiMessage', {
+                    method:'POST',
+                    credentials:'include',
+                    headers:{ 'Content-Type':'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                var rawText = await response.text();
+                var data;
+                try { data = JSON.parse(rawText); } catch {
+                    appendMessage("Error de formato en la respuesta de la IA.", 'ai');
+                    return;
+                }
+                if (response.ok) {
+                    appendMessage(data.reply, 'ai');
+                } else {
+                    appendMessage("Error: " + (data.message || "Error interno."), 'ai');
+                }
+            } catch(error) {
+                appendMessage("Error de conexion: " + error.message, 'ai');
+            } finally {
+                aiTyping.classList.add('d-none');
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+    });
+
+    function appendMessage(text, sender) {
+        var welcome = document.getElementById('ai-welcome-msg');
+        if (welcome) welcome.remove();
+
+        var div = document.createElement('div');
+        div.className = 'chat-msg msg-' + sender;
+        var formatted = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+        div.innerHTML = formatted;
+        document.getElementById('messages-container').appendChild(div);
+        document.getElementById('chat-box').scrollTop = 999999;
+    }
+
+    function clearChat() {
+        document.getElementById('messages-container').innerHTML = '';
+        var chatBox = document.getElementById('chat-box');
+        if (!document.getElementById('ai-welcome-msg')) {
+            var welcome = document.createElement('div');
+            welcome.id = 'ai-welcome-msg';
+            welcome.className = 'ai-welcome';
+            welcome.innerHTML = '<i class="fas fa-gem"></i><p>Chat limpiado. <span style="color:#d4af37;">Haz una nueva pregunta.</span></p>';
+            chatBox.insertBefore(welcome, chatBox.firstChild);
+        }
+    }
+
+    function sendSuggestion(el) {
+        var text = el.textContent.trim();
+        document.getElementById('user-input').value = text;
+        document.getElementById('chat-form').dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+    }
+
+    function setTheme(color, el) {
+        document.getElementById('chat-box').style.background = color;
+        document.querySelectorAll('.ai-theme-btn').forEach(function(b){ b.classList.remove('is-active'); });
+        if (el) el.classList.add('is-active');
+        localStorage.setItem('ai_chat_bg', color);
+    }
+
+    function loadPreferences() {
+        var savedBg = localStorage.getItem('ai_chat_bg');
+        if (savedBg) {
+            var chatBox = document.getElementById('chat-box');
+            if (chatBox) chatBox.style.background = savedBg;
+        }
+    }
+</script>
+
